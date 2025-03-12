@@ -2,7 +2,7 @@ from pages.generic_page import GenericPage
 from apps.ventas.models import Caja, Venta, DetalleVenta, ActividadCaja
 import flet as ft
 
-from pages.generic_page_form_standar import GenericPageFormStandar
+from pages.generic_page_form_standard import GenericPageFormStandar
 
 
 

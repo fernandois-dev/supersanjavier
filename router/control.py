@@ -3,9 +3,6 @@ import flet as ft
 from components.left_navigation_menu import LeftNavigationMenu
 from menudata import MenuData
 from pages.generic_page import GenericPage
-from pages.generic_page_form_standar import GenericPageFormStandar
-# from data.models import Producto, Categoria, Usuario, Caja, ActividadCaja, Venta, DetalleVenta
-from utilities.template_routes import TemplateRoute
 from router.router import Router #new import
 
 
