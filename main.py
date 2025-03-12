@@ -1,7 +1,7 @@
 import flet as ft
 import django
 
-import data.db  # Cargar configuración del ORM
+import settings  # Cargar configuración del ORM
 django.setup()
 
 from router.control import ControlView

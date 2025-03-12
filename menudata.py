@@ -13,12 +13,18 @@ class ControlGroup:
         self.children.append(child)
 
 
-class GalleryData:
+class MenuData:
     def __init__(self):
         self.control_groups = self.get_control_groups()
 
     def get_control_groups(self):
         return [
+            ControlGroup(
+                name="inicio",
+                label="Inicio",
+                icon=ft.icons.HOME,
+                selected_icon=ft.icons.HOME_OUTLINED,
+            ),
             ControlGroup(
                 name="productos",
                 label="Productos",

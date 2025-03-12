@@ -1,24 +1,24 @@
 import flet as ft
 
 from components.left_navigation_menu import LeftNavigationMenu
-from gallerydata import GalleryData
+from menudata import MenuData
 from pages.generic_page import GenericPage
 from pages.generic_page_form_standar import GenericPageFormStandar
-from data.models import Producto, Categoria, Usuario, Caja, ActividadCaja, Venta, DetalleVenta
+# from data.models import Producto, Categoria, Usuario, Caja, ActividadCaja, Venta, DetalleVenta
 from utilities.template_routes import TemplateRoute
 from router.router import Router #new import
 
 
 
 
-gallery = GalleryData()
+menudata = MenuData()
 
 class ControlView(ft.Row):
     def __init__(self, page: ft.Page):
         super().__init__()
         self.page = page
-        self.gallery = gallery
-        self.left_nav = LeftNavigationMenu(gallery, page)
+        self.menudata = menudata
+        self.left_nav = LeftNavigationMenu(menudata, page)
         self.control_page = ControlPages(page = self.page)
         self.expand = True
         self.controls = [

@@ -1,6 +1,7 @@
 import flet as ft
-from components.custom_input import Form
-from utilities.template_routes import TemplateRoute
+from components.custom_standard_form import Form
+from components.custom_dialogs import DlgConfirm, DlgAlert
+
 
 
 
@@ -14,9 +15,7 @@ class GenericPageFormStandar(ft.Container):
         self.fn_cancel = fn_cancel
         self.obj = _obj
         self.params = params
-        # self.origin_route = self.get_origin_route() # Get origin route from URL parameters
         self.build_page()
-
     
     def build_page(self):
         if '_obj' in self.params:
@@ -55,25 +54,16 @@ class GenericPageFormStandar(ft.Container):
         
         is_save_correctly = self.form.save()
         if is_save_correctly:
-            self.dlg_msg = ft.AlertDialog(title=ft.Text("Registo guardado correctamente"),)
-            self.page.open(self.dlg_msg)
+            DlgAlert(page=self.page, title="Registo guardado correctamente")
             self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
-            # self.page.go(self.params["origin"]) 
-            # self.fn_acept()
-            # self.display_main()
-            # self.update()
-            # self.set_search_menu()
-            # self.search()
+     
         
     def btn_cancelar(self):
         # validar si se modificó
         if not self.form.validate_form_change():
-            self.page.open(self.dlg_alert)
+            DlgConfirm(page=self.page,title="Desea salir sin guardar?", fn_yes=self.confirma_salir)
         else:
-            # self.page.data
             self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
 
-            # self.fn_cancel()
-            # self.display_main()
-            # self.update()
-            # self.set_search_menu()
+    def confirma_salir(self):
+        self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})

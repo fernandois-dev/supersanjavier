@@ -49,13 +49,13 @@ class NavigationItem(ft.Container):
         )
 
 class NavigationColumn(ft.Column):
-    def __init__(self, gallery, page):
+    def __init__(self, menudata, page):
         super().__init__()
         self.expand = True
         self.spacing = 0
         self.scroll = ft.ScrollMode.ALWAYS
         self.width = 200
-        self.gallery = gallery
+        self.menudata = menudata
         self.selected_index = None # Tracks main menu selection
         self.selected_submenu_index = None # Tracks submenu selection
         self.page = page
@@ -70,7 +70,7 @@ class NavigationColumn(ft.Column):
 
     def get_navigation_items(self):
         navigation_items = []
-        for destination in self.gallery.control_groups:
+        for destination in self.menudata.control_groups:
             if destination.children:
                 navigation_items.append(
                     NavigationItem(
@@ -224,12 +224,12 @@ class NavigationColumn(ft.Column):
 
 
 class LeftNavigationMenu(ft.Column):
-    def __init__(self, gallery, page):
+    def __init__(self, menudata, page):
         super().__init__()
-        self.gallery = gallery
+        self.menudata = menudata
         self.page = page
 
-        self.rail = NavigationColumn(gallery=gallery, page=self.page)
+        self.rail = NavigationColumn(menudata=menudata, page=self.page)
 
         self.dark_light_text = ft.Text("Light theme")
         self.dark_light_icon = ft.IconButton(

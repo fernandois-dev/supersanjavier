@@ -1,8 +1,9 @@
 import flet as ft
-from components.custom_input import Form, DlgConfirm, NotDataTable
-from components.cutom_button_cupertino import CustomButtonCupertino
+from components.custom_buttons import CustomButtonCupertino
+from components.not_data_table import NotDataTable
 from data.serach import buscar_modelo
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from components.custom_dialogs import DlgConfirm, DlgAlert
 
 class GenericPage(ft.Column):
     def __init__(self, page: ft.Page, _model, params = {}):
@@ -19,7 +20,6 @@ class GenericPage(ft.Column):
         self.search_active = False
         self.items_selected = 0
         self.titulo = self._model._meta.object_name
-        self.dlg_confirm = DlgConfirm(page)
         self.dict_order = {}
         self.text_search = ""
         self.text_order = ""
@@ -45,20 +45,6 @@ class GenericPage(ft.Column):
         
         self.build_search_input()
         self.build_search()
-        
-        
-        
-        self.dlg_alert = ft.AlertDialog(
-            modal=True,
-            open=True,
-            title=ft.Text("Desea salir sin guardar?"),
-            actions=[
-                ft.TextButton("No", on_click= lambda e: self.btn_cancelar_dlg_no()),
-                ft.TextButton("SI", on_click= lambda e: self.btn_cancelar_dlg_si())
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-            on_dismiss=lambda e: self.btn_cancelar_dlg_no(),
-        )
         
         self.menu_table = ft.Row(height=40, controls=[
             self.component_left_buttons,
@@ -152,18 +138,8 @@ class GenericPage(ft.Column):
         
         if count == 1:
             obj = list_objs[0]
-            row_acciones.controls.append(CustomButtonCupertino(
-                    content=ft.Row(
-                        [
-                            ft.Icon(name=ft.Icons.EDIT, color=ft.Colors.ON_SURFACE),
-                            ft.Text("Editar", color=ft.Colors.ON_SURFACE, size=15, font_family="Roboto Mono"),
-                        ],
-                        tight=True,
-                    ),
-                    height=40,
-                    bgcolor=ft.Colors.ON_SECONDARY,
-                    on_click= lambda e: self.display_form(obj)),
-            )
+            row_acciones.controls.append(CustomButtonCupertino(text="Editar", icon_name=ft.Icons.EDIT, on_click= lambda e: self.display_form(obj)))
+         
         
         #################################################
         ########### MENU DE ACCIONES ####################
@@ -398,9 +374,7 @@ class GenericPage(ft.Column):
         self.page.close(self.dlg_alert)
              
     def handle_delete(self):
-        self.dlg_confirm.title= ft.Text("Desea eliminar los registros?")
-        self.dlg_confirm.fn_yes = self.handle_delete_yes
-        self.dlg_confirm.set_open()
+        DlgConfirm(page=self.page, title="Desea eliminar los registros?", fn_yes=self.handle_delete_yes)
     
     def handle_delete_yes(self):
         try:
@@ -448,33 +422,6 @@ class GenericPage(ft.Column):
             self.page.custom_go(f"{self.page.route}/form?origin={self.page.route}?id={_obj.id}", params=params)
         else:
             self.page.custom_go(f"{self.page.route}/form?origin={self.page.route}", params=params)
-
-        # obj = _obj if _obj else self._model()
-        
-        # self.form = Form(obj)
-        # self.form.create_fields()
-        # self.form.create_button(
-        #     nombre="Cancelar", 
-        #     fn=self.btn_cancelar,
-        #     bgcolor=ft.Colors.SECONDARY, 
-        #     color=ft.Colors.ON_SECONDARY
-        # )
-        # self.form.create_button(
-        #     nombre="Aceptar", 
-        #     fn=self.btn_aceptar
-        # )
-        # self.form.update_controls()
-        
-        # titulo = f"{  "Editar" if _obj else "Agregar" } {self._model._meta.object_name}"
-        
-        # contenedor = ft.Column(controls=[
-        #     ft.Text(titulo,  size=18),
-        #     ft.Divider(height=5),
-        #     self.form
-        # ])
-        
-        # self.controls=[contenedor]
-        # self.update()
     
     def btn_aceptar(self):
         
