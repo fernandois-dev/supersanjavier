@@ -423,23 +423,23 @@ class GenericPage(ft.Column):
         else:
             self.page.custom_go(f"{self.page.route}/form?origin={self.page.route}", params=params)
     
-    def btn_aceptar(self):
+    # def btn_aceptar(self):
         
-        is_save_correctly = self.form.save()
-        if is_save_correctly:
-            self.dlg_msg = ft.AlertDialog(title=ft.Text("Registo guardado correctamente"),)
-            self.page.open(self.dlg_msg)
-            self.display_main()
-            self.update()
-            self.set_search_menu()
-            self.search()
+    #     is_save_correctly = self.form.save()
+    #     if is_save_correctly:
+    #         self.dlg_msg = ft.AlertDialog(title=ft.Text("Registo guardado correctamente"),)
+    #         self.page.open(self.dlg_msg)
+    #         self.display_main()
+    #         self.update()
+    #         self.set_search_menu()
+    #         self.search()
         
-    def btn_cancelar(self):
-        # validar si se modificó
-        if not self.form.validate_form_change():
-            self.page.open(self.dlg_alert)
-        else:
-            self.display_main()
-            self.update()
-            self.set_search_menu()
+    # def btn_cancelar(self):
+    #     # validar si se modificó
+    #     if self.form.chech_is_dirty():
+    #         self.page.open(self.dlg_alert)
+    #     else:
+    #         self.display_main()
+    #         self.update()
+    #         self.set_search_menu()
         

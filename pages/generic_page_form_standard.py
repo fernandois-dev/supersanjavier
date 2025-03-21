@@ -1,5 +1,6 @@
 import flet as ft
-from components.custom_standard_form import Form
+from components.custom_input import DisplayMode
+from components.field_builder import FieldBuilder
 from components.custom_dialogs import DlgConfirm, DlgAlert
 
 
@@ -25,8 +26,7 @@ class GenericPageFormStandar(ft.Container):
             
         obj = self.obj if self.obj else self._model()
         
-        self.form = Form(obj)
-        self.form.create_fields()
+        self.form = FieldBuilder(obj, diplay_mode=DisplayMode.EDIT)
         self.form.create_button(
             nombre="Cancelar", 
             fn=self.btn_cancelar,
@@ -37,7 +37,7 @@ class GenericPageFormStandar(ft.Container):
             nombre="Aceptar", 
             fn=self.btn_aceptar
         )
-        self.form.update_controls()
+        # self.form.update_controls()
         
         titulo = f"{  "Editar" if self.obj else "Agregar" } {self._model._meta.object_name}"
         
@@ -60,7 +60,7 @@ class GenericPageFormStandar(ft.Container):
         
     def btn_cancelar(self):
         # validar si se modificó
-        if not self.form.validate_form_change():
+        if self.form.check_is_dirty():
             DlgConfirm(page=self.page,title="Desea salir sin guardar?", fn_yes=self.confirma_salir)
         else:
             self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})

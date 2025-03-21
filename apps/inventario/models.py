@@ -1,7 +1,7 @@
 
 from django.db import models
 from django.core.validators import MinLengthValidator
-from data.custom_fields import CustomAutoField, CustomBooleanField, CustomCharField, CustomForeignKey, CustomIntegerField
+from data.custom_fields import CustomAutoField, CustomBooleanField, CustomCharField, CustomForeignKey, CustomIntegerField, CustomMoneyField
 
 
 class Producto(models.Model):
@@ -9,8 +9,8 @@ class Producto(models.Model):
     codigo = CustomCharField(max_length=10, verbose_name="Código", null=False, blank=False, validators=[MinLengthValidator(3)])
     nombre = CustomCharField(max_length=100, verbose_name="Nombre", null=False, blank=False)
     descripcion = CustomCharField(max_length=200, verbose_name="Descripción", null=True, blank=True)
-    precio_compra = CustomIntegerField(verbose_name="Precio Compra", null=False, blank=False)
-    precio_venta = CustomIntegerField(verbose_name="Precio Venta", null=False, blank=False)
+    precio_compra = CustomMoneyField(verbose_name="Precio Compra", null=False, blank=False)
+    precio_venta = CustomMoneyField(verbose_name="Precio Venta", null=False, blank=False)
     stock = CustomIntegerField(verbose_name="Stock", null=False, blank=False)
     categoria = CustomForeignKey('Categoria', verbose_name="Categoría", on_delete=models.SET_NULL, null=True, blank=True)
     activo = CustomBooleanField(verbose_name="Activo", null=False, blank=False, default=True)

@@ -1,8 +1,13 @@
 from django.db import models
 from apps.comun.models import Usuario
 from apps.inventario.models import Producto
-from data.custom_fields import CustomAutoField, CustomBooleanField, CustomCharField, CustomDateTimeField, CustomForeignKey, CustomIntegerField
+from data.custom_fields import CustomAutoField, CustomBooleanField, CustomCharField, CustomDateTimeField, CustomForeignKey, CustomIntegerField, CustomMoneyField
 
+VENTA_STATE_CHOICES = [
+    ("BR", "Borrador"),
+    ("CR", "Creada"),
+    ("AN", "Anulada"),
+]
 
 class Caja(models.Model):
     id = CustomAutoField(primary_key=True, verbose_name="ID", null=False, blank=False, editable=False)
@@ -11,8 +16,8 @@ class Caja(models.Model):
     fecha_cierre = CustomDateTimeField(verbose_name="Fecha Cierre", null=True, blank=True)
     usuario_apertura = CustomForeignKey(Usuario, verbose_name="Usuario Apertura", on_delete=models.SET_NULL, null=True, blank=False, related_name="usuario_apertura")
     usuario_cierre = CustomForeignKey(Usuario, verbose_name="Usuario Cierre", on_delete=models.SET_NULL, null=True, blank=True, related_name="usuario_cierre")
-    monto_apertura = CustomIntegerField(verbose_name="Monto Apertura", null=False, blank=False)
-    monto_cierre = CustomIntegerField(verbose_name="Monto Cierre", null=True, blank=True)
+    monto_apertura = CustomMoneyField(verbose_name="Monto Apertura", null=False, blank=False)
+    monto_cierre = CustomMoneyField(verbose_name="Monto Cierre", null=True, blank=True)
     activo = CustomBooleanField(verbose_name="Activo", null=False, blank=False, default=True)
 
     def __str__(self):
@@ -30,7 +35,7 @@ class ActividadCaja(models.Model):
     id = CustomAutoField(primary_key=True, verbose_name="ID", null=False, blank=False, editable=False)
     caja = CustomForeignKey(Caja, verbose_name="Caja", on_delete=models.CASCADE, null=False, blank=False)
     fecha = CustomDateTimeField(verbose_name="Fecha", null=False, blank=False)
-    monto = CustomIntegerField(verbose_name="Monto", null=False, blank=False)
+    monto = CustomMoneyField(verbose_name="Monto", null=False, blank=False)
     descripcion = CustomCharField(max_length=200, verbose_name="Descripción", null=True, blank=True)
 
     def __str__(self):
@@ -50,7 +55,8 @@ class Venta(models.Model):
     fecha = CustomDateTimeField(verbose_name="Fecha", null=False, blank=False)
     caja = CustomForeignKey(Caja, verbose_name="Caja", on_delete=models.CASCADE, null=False, blank=False)
     usuario = CustomForeignKey(Usuario, verbose_name="Usuario", on_delete=models.SET_NULL, null=True, blank=False)
-    total = CustomIntegerField(verbose_name="Total", null=False, blank=False)
+    total = CustomMoneyField(verbose_name="Total", null=False, blank=False, read_only=True)
+    state = CustomCharField(max_length=3, verbose_name="Estado", default="BR" ,null=True, blank=True, choices=VENTA_STATE_CHOICES)
 
     def __str__(self):
         return f"{self.id} - {self.fecha}"
@@ -67,7 +73,8 @@ class DetalleVenta(models.Model):
     venta = CustomForeignKey(Venta, verbose_name="Venta", on_delete=models.CASCADE, null=False, blank=False)
     producto = CustomForeignKey(Producto, verbose_name="Producto", on_delete=models.CASCADE, null=False, blank=False)
     cantidad = CustomIntegerField(verbose_name="Cantidad", null=False, blank=False)
-    precio = CustomIntegerField(verbose_name="Precio", null=False, blank=False)
+    precio = CustomMoneyField(verbose_name="Precio", null=False, blank=False)
+    total = CustomMoneyField(verbose_name="Total", null=False, blank=False, read_only=True, default=0)
 
     def __str__(self):
         return f"{self.id} - {self.producto}"

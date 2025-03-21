@@ -3,6 +3,7 @@ import flet as ft
 from components.left_navigation_menu import LeftNavigationMenu
 from menudata import MenuData
 from pages.generic_page import GenericPage
+from pages.not_found_page import NotFoundPage
 from router.router import Router #new import
 
 
@@ -47,10 +48,7 @@ class ControlPages(ft.Column):
         # ask the router for the page
         page_to_render = self.router.get_page(self.page.route, params)
         if page_to_render is not None:
-            if isinstance(page_to_render,GenericPage):
-                page_to_render.build_page()
             self.controls = [page_to_render]
             self.update()
         else:
-            # here you can add a 404 not found page
-            pass
+            self.controls = [NotFoundPage()]

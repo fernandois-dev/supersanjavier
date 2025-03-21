@@ -20,7 +20,7 @@ class MenuData:
     def get_control_groups(self):
         return [
             ControlGroup(
-                name="inicio",
+                name="/",
                 label="Inicio",
                 icon=ft.icons.HOME,
                 selected_icon=ft.icons.HOME_OUTLINED,

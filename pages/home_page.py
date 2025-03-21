@@ -1,7 +1,9 @@
 import flet as ft
 
-class NotFoundPage(ft.View):
-    def __init__(self, page: ft.Page, _model, params = {}):
+
+
+class HomePage(ft.View):
+    def __init__(self, page: ft.Page = None, _model = None, params = {}):
         super().__init__()
         self.route = "/404"
         self.controls = [
