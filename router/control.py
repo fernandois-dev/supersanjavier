@@ -19,6 +19,7 @@ class ControlView(ft.Row):
         self.left_nav = LeftNavigationMenu(menudata, page)
         self.control_page = ControlPages(page = self.page)
         self.expand = True
+        self.vertical_alignment = ft.CrossAxisAlignment.START
         self.controls = [
             self.left_nav,
             ft.VerticalDivider(width=1),
@@ -43,6 +44,7 @@ class ControlPages(ft.Column):
         self.controls = []
         self.page = page
         self.router = Router(self.page)  # Instantiate the Router
+        self.scroll = ft.ScrollMode.AUTO
 
     def display(self, params):
         # ask the router for the page

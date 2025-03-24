@@ -3,6 +3,8 @@ import inspect
 import flet as ft
 from collections.abc import Callable
 import locale
+
+from pages.conditions import Conditions
 locale.setlocale(locale.LC_ALL, 'es_CL')
 import datetime
 from data.serach import buscar_modelo
@@ -27,7 +29,7 @@ class LayoutMode(Enum):
     HORIZONTAL_WRAP = "horizontal_wrap"
     
 STYLE_DEFAULT = {
-    "height":44,
+    "height":50,
 }
 
 
@@ -56,14 +58,27 @@ class CustomAutoField(ft.TextField):
 
         
 class CustomIntegerField(ft.TextField):
-    def __init__(self, field, value=None, on_change=None, width=350, *args, **kwargs):
+    def __init__(self, field, value=None, on_submit=None, on_change=None, width=350, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = field.name
         self.value = value
+        self._original_on_submit = on_submit
         self.on_change = on_change
         self.width = width
+        self.shift_enter=True
         self.label = field.verbose_name
-        self.height = STYLE_DEFAULT["height"]
+        self.text_align = ft.TextAlign.RIGHT
+        self.on_submit = self.handle_submit
+
+    def handle_submit(self, e):
+        # Llamar al callback original si existe
+        if self._original_on_submit:
+            self._original_on_submit(e)
+        
+        # Restablecer el foco al control
+        self.focused = True
+        self.value = "55"
+        self.update()
 
     @property
     def value(self):
@@ -99,7 +114,11 @@ class CustomMoneyField(ft.TextField):
         self.text_align = ft.TextAlign.RIGHT  # Alinear texto a la derecha
         self.on_focus = self.handle_focus
         self.on_blur = self.handle_blur
-        self.height = STYLE_DEFAULT["height"]
+        # self.content_padding = ft.padding.only(top=-4, right=10, bottom=0, left=10)
+        # # self.text_vertical_align = ft.VerticalAlignment.START
+        # self.bgcolor = "green"
+         
+        # self.height = STYLE_DEFAULT["height"]
 
         # Valor interno (numérico)
         self._numeric_value = None
@@ -195,7 +214,7 @@ class CustomTextField(ft.TextField):
         self.width = width
         self.value = value
         self.label = field.verbose_name
-        self.height = STYLE_DEFAULT["height"]
+        # self.height = STYLE_DEFAULT["height"]
 
     
     def get_value(self):
@@ -214,7 +233,7 @@ class CustomDateTimeField(ft.Column):
         self.value = value
         self.spacing = 2
         self.width = 350
-        self.height = STYLE_DEFAULT["height"]
+        # self.height = STYLE_DEFAULT["height"]
         self._helper_text = helper_text
         self._helper_style = helper_style
         self._border_color = border_color
@@ -329,68 +348,242 @@ class CustomCheckbox(ft.Checkbox):
         self.value = value
     
     
-class CustomDropdown(ft.Dropdown):
+class CustomDropdown(ft.DropdownM2):
     def __init__(self, field, value=None, on_change=None, width=350, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = field.name
         self.value = value
-        self.on_change = on_change
+        self.updade_value = on_change
+        self.on_change = self.handle_change
         self.width = width
         self.label_style = ft.TextStyle(weight=ft.FontWeight.NORMAL)
         self.options=[ft.dropdown.Option("", text=" ", data=None)] + [ ft.dropdown.Option(str(opt.id), text=str(opt), data=opt) for opt in field.related_model.objects.all()]
         self.label = field.verbose_name
-        self.height = STYLE_DEFAULT["height"]
+        self.hover_color = "red"
+        # self.bgcolor = "blue"
+        self.fill_color = ft.Colors.TRANSPARENT
+        # self.focused_bgcolor = ft.Colors.BLUE
+        # self.height = STYLE_DEFAULT["height"]
+        
+    def handle_change(self, e):
+        
+        selected_option = next(
+            (opt for opt in self.options if opt.key == e.control.value), None
+        )
+        if selected_option:
+            # Pasar el valor `data` del Option seleccionado al callback
+            self.fill_color = ft.Colors.SECONDARY_CONTAINER
+            self.updade_value(None, value=selected_option.data)
+        else:
+            self.fill_color = ft.Colors.TRANSPARENT
+            self.updade_value(None, value=None)    
+        self.update()
 
+
+class SearchField(ft.Container):
+    def __init__(self , field,  border=None, on_change=None, on_submit = None, width=350, name="", label=None, value=None,data=None, *args, **kwargs):
+        super().__init__()
+        self.on_change = on_change
+        self.options = []  # Lista de opciones posibles
+        self.on_submit_callback = on_submit  # Callback opcional para submit
+        self.width = width
+        self.name = field.name
+        self.field = field
+        self.label = label
+        self.value = value
+        self.data = data
+        self.border = border
+
+        # Configurar el TextField
+        self.text_field = ft.TextField(
+            # label=hint_text,
+            shift_enter=True,
+            on_submit=lambda e: self.handle_submit(e),
+            on_change=self.update_suggestions,
+            expand=True,
+            label=self.label,
+        )
+        self.modal_text_field = ft.TextField(
+            shift_enter=True,
+            label="Filtrar sugerencias...",
+            on_change=self.update_modal_suggestions,
+            width=self.width,
+            autofocus=True,
+        )
+        self.btn_search = CustomIconButton(icon=ft.Icons.SEARCH, on_click=self.hundle_submit_btn)
+        
+
+
+        # Configurar el Container principal (el TextField)
+        self.content = ft.Row(controls=[self.text_field, self.btn_search], spacing=10)
+        # self.border = None  # Sin bordes decorativos en el Container
+        self.border_radius = 0  # Sin esquinas redondeadas
+        self.padding = 0
+        
+        # Modal para las sugerencias
+        self.suggestions_modal = self.suggestions_modal = ft.AlertDialog(
+            content=ft.Column(
+                controls=[
+                    self.modal_text_field,
+                    ft.Column(controls=[], spacing=0, scroll=ft.ScrollMode.AUTO, width=self.width),
+                ],
+                spacing=5,
+            ),
+            modal=False,  # No bloquea la UI
+            bgcolor=ft.colors.WHITE,
+            shape=ft.RoundedRectangleBorder(radius=5),
+            elevation=10,
+        )
+        
+    @property
+    def border(self):
+        return None
+
+    @border.setter
+    def border(self, value):
+        if hasattr(self, "text_field"):
+            self.text_field.border = value
+        super(SearchField, self.__class__).border.fset(self, None)
+        
+    # Propiedad label para compatibilidad con ManagerField
+    @property
+    def label(self):
+        return self._label
+
+    @label.setter
+    def label(self, value):
+        self._label = value
+        if hasattr(self, "text_field"):
+            self.text_field.label = value  # Actualizar el label del TextField
+            if hasattr(self.text_field, "page") and self.text_field.page:
+                self.text_field.update()
+        
+    def hundle_submit_btn(self, e):
+        self.page.open(self.suggestions_modal)  # Abrir el modal con sugerencias
+        self.modal_text_field.value = e.control.value
+        
+    def handle_submit(self, e):
+        if self.text_field.bgcolor == ft.Colors.ERROR_CONTAINER:
+            self.text_field.bgcolor = ft.Colors.TRANSPARENT
+            self.text_field.value = ""
+            self.text_field.update()
+            self.page.open(self.suggestions_modal)
+        
+        # if not e.control.value or len(e.control.value) <= 3: return
+        
+        result = buscar_modelo(self.field.related_model.objects.all(), e.control.value)[:100]
+        if result:
+            if len(result) == 1:
+                self.text_field.value = str(result[0])
+                self.text_field.data = result[0]
+                self.text_field.bgcolor = ft.Colors.SECONDARY_CONTAINER
+                self.value = str(result[0])
+                self.data = result[0]
+                self.text_field.update()
+                self.on_change(None, value=self.data)
+            else:
+                
+                self.suggestions_modal.content.controls[1].controls = [  # Actualizar la segunda Column
+                    ft.ListTile(
+                        title=ft.Text(option),
+                        on_click=lambda e, val=option: self.select_option(val),
+                        data=option
+                    ) for option in result
+                ]
+                self.page.open(self.suggestions_modal)  # Abrir el modal con sugerencias
+                self.modal_text_field.value = e.control.value  # Sincronizar el TextField del modal
+        else:
+            self.text_field.focus()
+            self.text_field.bgcolor = ft.Colors.ERROR_CONTAINER
+            self.text_field.value = ""
+            self.text_field.update()
+        
+        # self.page.close(self.suggestions_modal)  # Cerrar el modal
+        # self.text_field.focus()
+        if self.on_submit_callback:
+            self.on_submit_callback(self.text_field.value)
+        self.page.update()
+
+    def update_suggestions(self, e):
+        self.text_field.bgcolor = ft.Colors.ON_PRIMARY
+        self.data = None
+        self.text_field.update()
+        self.on_change(None)
+
+    def update_modal_suggestions(self, e):
+        if not e.control.value or len(e.control.value) <= 3: return
+        result = buscar_modelo(self.field.related_model.objects.all(), e.control.value)[:100]
+        
+        self.suggestions_modal.content.controls[1].controls = [  # Actualizar la segunda Column
+                    ft.ListTile(
+                        title=ft.Text(option),
+                        on_click=lambda e, val=option: self.select_option(val),
+                        data=option
+                    ) for option in result
+                ]
+        self.page.update()
+
+    def select_option(self, value):
+        self.text_field.value = value
+        self.text_field.data = value
+        self.text_field.bgcolor = ft.Colors.SECONDARY_CONTAINER
+        self.data = value
+        self.value = value
+        self.text_field.update()
+        self.on_change(None, value=self.data)
+        
+        self.page.close(self.suggestions_modal)  # Cerrar el modal
+        self.text_field.focus()
+        self.page.update()
     
-    def get_value(self):
-        for opt in self.options:
-            if self.value == opt.key:
-                return opt.data
-        return " "
-
 
 class CustomSearchInput(ft.Row):
-    def __init__(self , field, page:ft.Page, on_change = None,  model=None, value=None,data=None, *args, **kwargs):
+    def __init__(self , field, page:ft.Page, on_change=None, name="", label=None, value=None,data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.page = page
         self.on_change = on_change
         self.name = field.name
-        self.model = model
+        self.field = field
+        self.label = label
         self.value = value
         self.data = data
-        self.spacing = 2
+        self.spacing = 0
         self.expand = True
-        self.height = STYLE_DEFAULT["height"]
+        # self.height = STYLE_DEFAULT["height"]
         # self.width = 350
-        self.dlg = ft.AlertDialog(
-            modal=True,
-            title=ft.Text("Busqueda"),
-            content=ft.Text("Do you really want to delete all those files?"),
-            actions=[
-                ft.TextButton("ACEPTAR", on_click= lambda e : self.handle_dlg_yes()),
-                ft.TextButton("CANCELAR", on_click= lambda e : self.handle_dlg_no()),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        self.btn_search = CustomIconButton(icon=ft.Icons.SEARCH, on_click=self.handle_search)
-        self.txt_search = ft.TextField(label="Buscar", expand=True, on_submit=self.handle_submit)
-        self.searchbar = ft.SearchBar(on_submit=self.handle_submit_searchbar, on_change=self.handle_on_change, value=self.value, data=self.data)
+        # self.dlg = ft.AlertDialog(
+        #     modal=True,
+        #     title=ft.Text("Busqueda"),
+        #     content=ft.Text("Do you really want to delete all those files?"),
+        #     actions=[
+        #         ft.TextButton("ACEPTAR", on_click= lambda e : self.handle_dlg_yes()),
+        #         ft.TextButton("CANCELAR", on_click= lambda e : self.handle_dlg_no()),
+        #     ],
+        #     actions_alignment=ft.MainAxisAlignment.END,
+        # )
+        # self.btn_search = CustomIconButton(icon=ft.Icons.SEARCH, on_click=self.handle_search)
+        # self.txt_search = ft.TextField(label="Buscar", expand=True, on_submit=self.handle_submit)
+        self.searchbar = ft.SearchBar(on_submit=lambda e: self.handle_submit_with_focus(self.searchbar, self.handle_submit_searchbar, e), 
+                                      on_change=self.handle_on_change, value=self.value, data=self.data)
         self.searchbar.view_elevation = 0
-        self.searchbar.bar_bgcolor = { ft.ControlState.DEFAULT: ft.Colors.SURFACE, 
-                                     ft.ControlState.SELECTED: ft.Colors.SURFACE,  
-                                     ft.ControlState.HOVERED: ft.Colors.SURFACE,  
-                                     }
+        self.searchbar.bar_bgcolor = ft.Colors.TRANSPARENT
         self.searchbar.bar_shadow_color = ft.Colors.ON_PRIMARY
         self.searchbar.bar_shape = ft.RoundedRectangleBorder(radius=0)
         self.searchbar.view_shape = ft.RoundedRectangleBorder(radius=0)
         self.searchbar.bar_shadow_size = 0
+        self.searchbar.bar_padding = ft.padding.only(top=3, right=3, bottom=0, left=3)
+        self.searchbar.bar_scroll_padding = ft.padding.all(0)
+        self.searchbar.view_elevation = 0
+        self.searchbar.bar_elevation = 0
+        self.searchbar.height = 35
+        self.searchbar.autofocus = True
         self.searchbar.expand = True
-        self.searchbar.height = STYLE_DEFAULT["height"]
+        # self.searchbar.height = STYLE_DEFAULT["height"]
         # self.controls = [self.txt_search, self.btn_search]
         self.controls = [self.searchbar]
         
-    def handle_search(self, e):
-        self.page.open(self.dlg)
+    # def handle_search(self, e):
+    #     self.page.open(self.dlg)
         
     def handle_dlg_no(self):
         if self.fn_no:
@@ -427,7 +620,7 @@ class CustomSearchInput(ft.Row):
     def handle_submit_searchbar(self,e):
         if not e.data or len(e.data) <= 3: return
         
-        result = buscar_modelo(self.model.objects.all(), e.data)
+        result = buscar_modelo(self.field.related_model.objects.all(), e.data)
         if result:
             if len(result) == 1:
                 self.searchbar.value = str(result[0])
@@ -440,6 +633,29 @@ class CustomSearchInput(ft.Row):
                 self.searchbar.controls = [ft.ListTile(title=ft.Text(f"{i}"), on_click=self.close_anchor, data=i) for i in result]
                 self.searchbar.update()
                 self.searchbar.open_view()
+        else:
+            self.searchbar.selection_start = 0
+            self.searchbar.selection_end = len(e.data)
+            self.searchbar.update()
+            self.searchbar.focused = True
+            self.searchbar.update()
+            
+    def handle_submit_with_focus(self, control, callback, event):
+        """
+        Maneja el evento on_submit y restablece el foco al control.
+        
+        Args:
+            control: El control que debe mantener el foco.
+            callback: La función de callback que maneja el evento on_submit.
+            event: El evento on_submit.
+        """
+        # Llamar al callback original
+        if callback:
+            callback(event)
+        
+        # Restablecer el foco al control
+        control.focused = True
+        control.update()
 
     def handle_submit(self,e):
         if not e.data or len(e.data) <= 3: return
@@ -463,6 +679,13 @@ def get_input_by_type(input_type: str, **kwargs):
             "CustomBooleanField": CustomCheckbox,
             "CustomForeignKey": CustomDropdown,
             }
+    
+    filtered_kwargs = filter_kwargs(list_inputs[input_type], kwargs)
+    
+    if input_type in list_inputs:
+        return list_inputs[input_type](**filtered_kwargs)
+    else:
+        return None
 
 # TODO Agregar funcionalidad para visualizar los campos.
 def get_view_by_type(input_type: str, **kwargs):
@@ -492,23 +715,36 @@ class ManagerField(ft.Container):
                  display_mode: DisplayMode = DisplayMode.VIEW,
                  layout_mode: LayoutMode = LayoutMode.VERTICAL,
                  input_type: str = "CustomCharField",
+                 conditions = Conditions(),
                  expand = 1,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.custom_edit = None
+        self.layout_mode = layout_mode
         self.custom_view = None
+        self.conditions = conditions
         self.display_mode = display_mode
         self.input_type = input_type
         self.value = None
-        self.name = ""
-        self.content = ft.Text("sdfdsf")
+        self.content = None
         self.expand = expand if layout_mode != LayoutMode.HORIZONTAL_WRAP else None
     
     def build_field(self, **kwargs):
         self.value = kwargs.get("value", None)
         self.name = kwargs.get("name", "")
+        self.override_input_type = self.conditions.overrides_input_type.get(self.name, None)
+        self.override_view_type = self.conditions.overrides_view_type.get(self.name, None)
+        
         if self.display_mode == DisplayMode.EDIT:
-            self.custom_edit = get_input_by_type(self.input_type, **kwargs)
+            self.custom_edit = get_input_by_type(self.input_type, **kwargs) if not self.override_input_type else self.override_input_type(**kwargs)
+            if self.layout_mode == LayoutMode.HORIZONTAL:
+                self.custom_edit.border = ft.InputBorder.NONE
+                self.custom_edit.label = None
+                self.expand = self.conditions.fields_expand.get(self.name, 1)
+                self.border = ft.border.only(right=ft.BorderSide(width=3, color=ft.Colors.PRIMARY_CONTAINER))
+                self.padding = ft.padding.only(left=3, right=2, bottom=2)
+                self.height = 38
+                
             self.content = self.custom_edit
         else:
             self.custom_view = ft.Text(self.value)
@@ -524,6 +760,14 @@ class ManagerField(ft.Container):
         
     def get_field(self):
         return self.content
+    
+    def set_value(self, value):
+        self.value = value
+        if self.display_mode == DisplayMode.EDIT:
+            self.custom_edit.value = value
+        else:
+            self.custom_view.value = value
+        # self.update()
         
     
         

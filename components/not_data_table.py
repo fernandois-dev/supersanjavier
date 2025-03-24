@@ -1,7 +1,7 @@
 import flet as ft
 import copy
 from components.custom_dialogs import DlgConfirm
-from components.field_builder import FieldBuilder, FieldFactory
+from components.field_builder import FieldBuilder
 from pages.conditions import Conditions
 from components.custom_input import DisplayMode, LayoutMode, get_input_by_type
 
@@ -54,6 +54,8 @@ class NotDataTableHeader(ft.Container):
                     header_aligment = ft.MainAxisAlignment.CENTER
                 elif "IntegerField" in type(col).__name__ :
                     header_aligment = ft.MainAxisAlignment.END
+                elif "MoneyField" in type(col).__name__ :
+                    header_aligment = ft.MainAxisAlignment.END
                 else:
                     header_aligment = ft.MainAxisAlignment.START
                     
@@ -64,56 +66,63 @@ class NotDataTableHeader(ft.Container):
                     else:
                         icon = ft.Icon("arrow_drop_up")
                     
-                    text_header = ft.Container(content=
-                                        ft.Row(controls=[
-                                            ft.Text(col.verbose_name, weight="bold", expand=True), 
-                                            icon
-                                        ], 
-                                        alignment=header_aligment), 
-                                        margin=ft.margin.symmetric(horizontal=5)
-                                    )
+                    text_header = ft.Container(
+                        content=ft.Row(
+                            controls=[ft.Text(col.verbose_name, weight="bold", expand=True), icon], 
+                            alignment=header_aligment), 
+                        margin=ft.margin.symmetric(horizontal=0),
+                    )
                 else:
-                    text_header = ft.Container(content=
-                                    ft.Row(controls=[
-                                        ft.Text(col.verbose_name, weight="bold"),                                       
-                                    ],
-                                    alignment=header_aligment
-                                    ),
-                                margin=ft.margin.symmetric(horizontal=5),
-                                expand=True,
-                                
-                                )
+                    text_header = ft.Container(
+                        content=ft.Row(
+                            controls=[ft.Text(col.verbose_name, weight="bold"),],
+                            alignment=header_aligment),
+                        margin=ft.margin.symmetric(horizontal=0),
+                        expand=True,
+                    )
                     
                 
-                if "BooleanField" in type(col).__name__:
-                    list_header_row.append(ft.Container(text_header, 
-                                                        expand=1, alignment=ft.alignment.center, 
+                # if "BooleanField" in type(col).__name__:
+                #     container = ft.Container(text_header, 
+                #                                         expand=1, alignment=ft.alignment.center, 
+                #                                         on_hover= (lambda e: on_hover(e)) if sort else None,
+                #                                         on_click= (lambda e: on_click(e)) if sort else None,
+                #                                         data=col.name,
+                #                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
+                #                                         )
+                # elif "IntegerField" in type(col).__name__ :
+                #     container = ft.Container(text_header, 
+                #                                         on_hover= (lambda e: on_hover(e)) if sort else None,
+                #                                         on_click= (lambda e: on_click(e)) if sort else None,
+                #                                         expand=1, 
+                #                                         data=col.name,
+                #                                         alignment=ft.alignment.center_right,
+                #                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
+                #                                         )
+                # else:
+                #     container = ft.Container(text_header, 
+                #                                         on_hover= (lambda e: on_hover(e)) if sort else None,
+                #                                         on_click= (lambda e: on_click(e)) if sort else None,
+                #                                         expand=1,
+                #                                         data=col.name,
+                #                                         padding=ft.padding.symmetric(horizontal=0),
+                #                                         alignment=ft.alignment.center_left,
+                #                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
+                #                                         )
+                container = ft.Container(text_header, 
                                                         on_hover= (lambda e: on_hover(e)) if sort else None,
                                                         on_click= (lambda e: on_click(e)) if sort else None,
+                                                        expand=self.conditions.fields_expand.get(col.name, 1),
                                                         data=col.name,
-                                                        bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                                                        ))
-                elif "IntegerField" in type(col).__name__ :
-                    list_header_row.append(ft.Container(text_header, 
-                                                        on_hover= (lambda e: on_hover(e)) if sort else None,
-                                                        on_click= (lambda e: on_click(e)) if sort else None,
-                                                        expand=1, 
-                                                        data=col.name,
-                                                        alignment=ft.alignment.center_right,
-                                                        bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                                                        ))
-                else:
-                    list_header_row.append(ft.Container(text_header, 
-                                                        on_hover= (lambda e: on_hover(e)) if sort else None,
-                                                        on_click= (lambda e: on_click(e)) if sort else None,
-                                                        expand=1,
-                                                        data=col.name,
-                                                        padding=ft.padding.symmetric(horizontal=5),
+                                                        padding=ft.padding.symmetric(horizontal=0),
                                                         alignment=ft.alignment.center_left,
                                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                                                        ))
-
-        self.content= ft.Row(controls=list_header_row)
+                                                        margin=ft.margin.symmetric(horizontal=5),
+                                                        )
+                # container.expand = self.conditions.fields_expand.get(col.name, 1)
+                list_header_row.append(container)
+                
+        self.content= ft.Row(controls=list_header_row, spacing=0)
 
         
         def on_hover(e):
@@ -150,95 +159,96 @@ class NotDataTableHeader(ft.Container):
         self.chk_column.update()
 
               
-class NotDataRowTable(ft.Row):
-    def __init__(self, obj, is_editable = False, conditions={}, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.obj = obj
-        self.is_editable = is_editable
-        self.controls = []
-        self.dict_values = {}
-        self.expand = True
+# class NotDataRowTable(ft.Row):
+#     def __init__(self, obj, is_editable = False, conditions={}, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.obj = obj
+#         self.is_editable = is_editable
+#         self.controls = []
+#         self.dict_values = {}
+#         self.expand = True
         
-        self.conditions = conditions
+#         self.conditions = conditions
         
-        self.make_row()
+#         self.make_row()
         
         
-    def make_row(self):
-        list_data_cell = []
-        # list_row_values = {}
+#     def make_row(self):
+#         list_data_cell = []
+#         # list_row_values = {}
         
-        fields_order = self.conditions.fields_order or [field.name for field in self.obj._meta.fields]
+#         fields_order = self.conditions.fields_order or [field.name for field in self.obj._meta.fields]
         
-        for field_name in fields_order:
-            col = next((field for field in self.obj._meta.fields if field.name == field_name), None)
-            if not col:
-                continue
+#         for field_name in fields_order:
+#             col = next((field for field in self.obj._meta.fields if field.name == field_name), None)
+#             if not col:
+#                 continue
             
-            value = getattr(self.obj, col.name, None)
-            # self.dict_values[col.name] = value
-            if col.hidden or col.name in self.conditions.fields_excluded: continue
-            # list_row_values[col.name] = value
-            if self.is_editable:
-                if "BooleanField" in type(col).__name__:
-                    input = get_input_by_type(ControlInputType.CustomCheckbox, value=value, name=col.name, on_change=self.create_on_change_handler(col))
-                    aligment = ft.alignment.bottom_center
-                elif "IntegerField" in type(col).__name__:
-                    input = get_input_by_type(ControlInputType.CustomIntegerField, value=value, name=col.name, on_change=self.create_on_change_handler(col))
-                    aligment = ft.alignment.center_right
-                elif "MoneyField" in type(col).__name__:
-                    input = get_input_by_type(ControlInputType.CustomIntegerField, value=value, name=col.name, on_change=self.create_on_change_handler(col))
-                    aligment = ft.alignment.center_right
-                elif "ForeignKey" in type(col).__name__:
-                    input = get_input_by_type(ControlInputType.CustomSearchInput, model=col.related_model, name=col.name, value=value, data=value, page=self.page, on_change=self.create_on_change_handler(col))
-                    aligment = ft.alignment.center_left
-                else:
-                    input = get_input_by_type(ControlInputType.CustomTextField, value=value, name=col.name, on_change=self.create_on_change_handler(col))
-                    aligment = ft.alignment.center_left
-                list_data_cell.append(ft.Container(content=input, expand=1, alignment=aligment, data=col.name))
-            else:
-                if "BooleanField" in type(col).__name__:
-                    list_data_cell.append(ft.Container(content=ft.Checkbox(value=value, disabled=True), expand=1, alignment=ft.alignment.center))
-                elif "IntegerField" in type(col).__name__:
-                    list_data_cell.append(
-                        ft.Container(ft.Text("{:,}".format(value).replace(",", ".") if value is not None else ""), expand=1, alignment=ft.alignment.center_right))
-                else:
-                    list_data_cell.append(ft.Container(ft.Text(value), expand=1, alignment=ft.alignment.center_left))
+#             value = getattr(self.obj, col.name, None)
+#             # self.dict_values[col.name] = value
+#             if col.hidden or col.name in self.conditions.fields_excluded: continue
+#             # list_row_values[col.name] = value
+#             if self.is_editable:
+#                 if "BooleanField" in type(col).__name__:
+#                     input = get_input_by_type(ControlInputType.CustomCheckbox, value=value, name=col.name, on_change=self.create_on_change_handler(col))
+#                     aligment = ft.alignment.bottom_center
+#                 elif "IntegerField" in type(col).__name__:
+#                     input = get_input_by_type(ControlInputType.CustomIntegerField, value=value, name=col.name, on_change=self.create_on_change_handler(col))
+#                     aligment = ft.alignment.center_right
+#                 elif "MoneyField" in type(col).__name__:
+#                     input = get_input_by_type(ControlInputType.CustomIntegerField, value=value, name=col.name, on_change=self.create_on_change_handler(col))
+#                     aligment = ft.alignment.center_right
+#                 elif "ForeignKey" in type(col).__name__:
+#                     input = get_input_by_type(ControlInputType.CustomSearchInput, model=col.related_model, name=col.name, value=value, data=value, page=self.page, on_change=self.create_on_change_handler(col))
+#                     aligment = ft.alignment.center_left
+#                 else:
+#                     input = get_input_by_type(ControlInputType.CustomTextField, value=value, name=col.name, on_change=self.create_on_change_handler(col))
+#                     aligment = ft.alignment.center_left
+#                 list_data_cell.append(ft.Container(content=input, expand=1, alignment=aligment, data=col.name))
+#             else:
+#                 if "BooleanField" in type(col).__name__:
+#                     list_data_cell.append(ft.Container(content=ft.Checkbox(value=value, disabled=True), expand=1, alignment=ft.alignment.center))
+#                 elif "IntegerField" in type(col).__name__:
+#                     list_data_cell.append(
+#                         ft.Container(ft.Text("{:,}".format(value).replace(",", ".") if value is not None else ""), expand=1, alignment=ft.alignment.center_right))
+#                 else:
+#                     list_data_cell.append(ft.Container(ft.Text(value), expand=1, alignment=ft.alignment.center_left))
         
-        self.controls=list_data_cell
+#         self.controls=list_data_cell
     
-    def create_on_change_handler(self, col):
-        def on_change(e, value = None):
-            def update_depentents(obj, col_name):
-                for field, depend_calculation in self.conditions.fields_calculations.items():
-                    depends = depend_calculation.get("depends", [])
-                    calculation = depend_calculation.get("calculation", None)
-                    if col_name in depends:  # Evitar recalcular el mismo campo
-                        new_value = calculation(obj)
-                        setattr(obj, field, new_value)
+#     def create_on_change_handler(self, col):
+#         def on_change(e, value = None):
+#             def update_depentents(obj, col_name):
+#                 for field, depend_calculation in self.conditions.fields_calculations.items():
+#                     depends = depend_calculation.get("depends", [])
+#                     calculation = depend_calculation.get("calculation", None)
+#                     if col_name in depends:  # Evitar recalcular el mismo campo
+#                         new_value = calculation(obj)
+#                         setattr(obj, field, new_value)
                         
-                        # Actualizar el control correspondiente
-                        for control in self.controls:
-                            if control.data == field:
-                                if isinstance(control.content, ft.TextField):
-                                    control.content.value = new_value
-                                elif isinstance(control.content, ft.Checkbox):
-                                    control.content.value = bool(new_value)
-                                control.update()
+#                         # Actualizar el control correspondiente
+#                         for control in self.controls:
+#                             if control.data == field:
+#                                 if isinstance(control.content, ft.TextField):
+#                                     control.content.value = new_value
+#                                 elif isinstance(control.content, ft.Checkbox):
+#                                     control.content.value = bool(new_value)
+#                                 control.update()
                         
-                        update_depentents(obj, field)
-             # Actualizar el valor del campo
-            setattr(self.obj, col.name, e.control.value if e else value)
-            update_depentents(self.obj, col.name) # Actualizar los campos dependientes
+#                         update_depentents(obj, field)
+#              # Actualizar el valor del campo
+#             setattr(self.obj, col.name, e.control.value if e else value)
+#             update_depentents(self.obj, col.name) # Actualizar los campos dependientes
              
-        return on_change
+#         return on_change
         
 
 class NotDataTable(ft.Column):
-    def __init__(self, is_chk_column_enabled = True, is_editable = False, conditions=Conditions() ,*args, **kwargs):
+    def __init__(self, is_chk_column_enabled = True, is_editable = False, conditions=Conditions(), page:ft.Page=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.expand = True
         self.header = None
+        self.page=page
         self.rows = []
         self.spacing=0
         self._data = None
@@ -258,9 +268,10 @@ class NotDataTable(ft.Column):
         
         self.component_header = ft.Column(controls=[], spacing=0)
         self.component_body = ft.Column(controls=[], spacing=0)
+        self.component_footer = ft.Column(controls=[], spacing=0)
         self.component_buttons = ft.Container()
         
-        self.controls = [self.component_buttons, self.component_header, self.component_body]
+        self.controls = [self.component_buttons, self.component_header, self.component_body, self.component_footer]
         
         self.switch_edit = ft.Switch(label="Editar", on_change=self.on_changed_switch_edit, value=True)
         self.btn_add_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.ADD, size=28),]),
@@ -316,20 +327,20 @@ class NotDataTable(ft.Column):
             
     def make_row(self, idx, obj):
         list_data_cell = []
-        self.chk_column = ft.Checkbox(value= False, width=40, on_change=lambda e: handle_row_selected(e), data=obj)
+        original_obj = copy.deepcopy(obj)
+        
+        self.chk_column = ft.Checkbox(value= False, width=40, height=40, on_change=lambda e: handle_row_selected(e), data=obj)
+        
         if self.is_chk_column_enabled: list_data_cell.append(self.chk_column)
         if self.is_editable and self.switch_edit.value: 
             btn_remove_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.REMOVE, size=28),]),
-                                           width=40, height=40,
+                                           width=40, height=30,
                                            style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.TERTIARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
                                            on_click=lambda e, idx=idx: self.delete_row(e, idx))
-            list_data_cell.append(ft.Container(content=btn_remove_row, margin=ft.margin.symmetric(horizontal=0, vertical=5)))
-        original_obj = copy.deepcopy(obj)
-        
-        # list_data_cell.append(NotDataRowTable(obj=obj, is_editable=self.switch_edit.value and self.is_editable, conditions=self.conditions))
+            list_data_cell.append(ft.Container(content=btn_remove_row, margin=ft.margin.symmetric(horizontal=0, vertical=0)))
         
         diplay_mode=DisplayMode.EDIT if self.switch_edit.value and self.is_editable else DisplayMode.VIEW
-        list_data_cell.append(FieldBuilder(obj=obj, layout_mode=LayoutMode.HORIZONTAL, diplay_mode=diplay_mode, conditions=self.conditions))
+        list_data_cell.append(FieldBuilder(obj=obj, layout_mode=LayoutMode.HORIZONTAL, diplay_mode=diplay_mode, conditions=self.conditions, page=self.page))
             
         def handle_row_selected(e):
             list_rows_selected = self.list_rows_selected()
@@ -340,10 +351,12 @@ class NotDataTable(ft.Column):
                 
             e.control.update()
         
-        row_container = ft.Container(content= ft.Row(controls=list_data_cell ),
-            height=40,
+        row_container = ft.Container(content= ft.Row(controls=list_data_cell, vertical_alignment=ft.VerticalAlignment.CENTER, spacing=0),
+            # height=44,
+            padding=ft.padding.only(top=2, bottom=0),
             border = ft.border.only(bottom=ft.border.BorderSide(1, ft.Colors.with_opacity(0.2 , ft.Colors.ON_SURFACE_VARIANT))),
-            bgcolor=ft.Colors.with_opacity(0.0 if idx%2 == 0 else 0.3  , ft.Colors.SECONDARY_CONTAINER),
+            bgcolor= ft.Colors.with_opacity(0.0 if idx%2 == 0 else 0.3  , ft.Colors.SECONDARY_CONTAINER),
+            alignment=ft.alignment.center,
             key=idx,
             # on_long_press= lambda e: self.handle_long_press(obj),
             data={"obj_original":original_obj, "chk":self.chk_column},)

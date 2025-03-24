@@ -1,3 +1,4 @@
+from components.custom_input import SearchField
 from pages.generic_page import GenericPage
 from apps.ventas.models import Caja, Venta, DetalleVenta, ActividadCaja
 import flet as ft
@@ -25,6 +26,9 @@ def venta_list(page: ft.Page, params: dict):
 
 def venta_form(page: ft.Page, params: dict):
     conditions = Conditions(
+        overrides_input_type={
+                "usuario": SearchField
+            },
         fields_excluded=["state"],
         related_objects={"detalleventa_set": {
             'fields_excluded': ["id","venta"],
@@ -32,7 +36,11 @@ def venta_form(page: ft.Page, params: dict):
             'fields_calculations':{
                 "precio": { "depends": ["producto"], "calculation": lambda obj: obj.producto.precio_venta if obj.producto_id else 0},
                 "total": { "depends": ["cantidad", "precio"], "calculation": lambda obj: obj.cantidad * obj.precio if obj.cantidad and obj.precio else 0,}
-            }
+            },
+            'overrides_input_type':{
+                "producto": SearchField
+            },
+            'fields_expand':{"cantidad":2, "producto":4, "precio":3, "total":3}
         }}
     )
     view = GenericHeaderDetailForm(page=page, _model=Venta, params=params, conditions=conditions)

@@ -9,9 +9,20 @@ from router.control import ControlView
             
 def main(page: ft.Page):
     
+    
     page.title = "Sistema de Gestion de Inventario"
     page.params = {}
     page.custom_go = lambda route, params=None: custom_go(route, params)
+    
+    
+    # page.window.focused = False
+    # page.window.on_event = handle_window_event
+    # page.window.
+    
+    # def handle_keyboard_event(e):
+    #      print("Keyboard event:", e.data)
+        
+    # page.on_keyboard_event = handle_keyboard_event
 
     page.fonts = {
         "Roboto Mono": "RobotoMono-VariableFont_wght.ttf",

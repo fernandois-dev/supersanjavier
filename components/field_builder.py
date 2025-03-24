@@ -28,14 +28,14 @@ class FormButtons(ft.Row):
 
 
 class FieldFactory(ft.Container):
-    def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, conditions = Conditions(), diplay_mode = DisplayMode.EDIT, *args, **kwargs):
+    def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, conditions = Conditions(), diplay_mode = DisplayMode.EDIT, page: ft.Page= None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = None
         self.init_values = {}
         self.list_fields = []
+        self.page = page
         self.conditions = conditions
         self.is_dirty = False
-        
         self.obj = obj
         self.original_obj = copy.deepcopy(obj)
         self.layout_mode = layout_mode
@@ -59,8 +59,9 @@ class FieldFactory(ft.Container):
             
             value = getattr(self.obj, field.name, None)
             # instancia el manejo de los campos
-            manager_field = ManagerField(display_mode=self.display_mode, input_type=type(field).__name__, layout_mode=self.layout_mode)
-            manager_field.build_field(label=field.verbose_name, on_change=self.create_on_change_handler(field), value=value, field=field)
+            manager_field = ManagerField(display_mode=self.display_mode, input_type=type(field).__name__, 
+                                         layout_mode=self.layout_mode, conditions=self.conditions)
+            manager_field.build_field(label=field.verbose_name, on_change=self.create_on_change_handler(field), value=value, field=field, name=field.name, page=self.page)
             
             list_fields.append(manager_field)
         self.list_fields = list_fields        
@@ -72,11 +73,11 @@ class FieldFactory(ft.Container):
                 self.init_values[field.name] = field.value
         
         if self.layout_mode == LayoutMode.VERTICAL:
-            self.content = ft.Column(controls=self.list_fields)
+            self.content = ft.Column(controls=self.list_fields, spacing=5)
         elif self.layout_mode == LayoutMode.HORIZONTAL_WRAP:
             self.content = ft.Row(controls=self.list_fields, wrap=True, spacing=10, run_spacing=10)
         else:
-            self.content = ft.Row(controls=self.list_fields, spacing=10)
+            self.content = ft.Row(controls=self.list_fields, spacing=2)
     
         # self.content = [ft.Column(controls=self.list_fields)  
         #                  if self.orientation == "vertical" 
@@ -96,12 +97,9 @@ class FieldFactory(ft.Container):
                         setattr(obj, field, new_value)
                         
                         # Actualizar el control correspondiente
-                        for control in self.controls:
-                            if control.data == field:
-                                if isinstance(control.content, ft.TextField):
-                                    control.content.value = new_value
-                                elif isinstance(control.content, ft.Checkbox):
-                                    control.content.value = bool(new_value)
+                        for control in self.content.controls:
+                            if control.name == field:
+                                control.set_value(new_value)
                                 control.update()
                         
                         update_depentents(obj, field)
@@ -125,15 +123,16 @@ class FieldFactory(ft.Container):
     
 
 class FieldBuilder(ft.Column):
-    def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, diplay_mode=DisplayMode.EDIT,  conditions = Conditions(), *args, **kwargs):
+    def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, diplay_mode=DisplayMode.EDIT,  conditions = Conditions(),page: ft.Page= None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.controls = []
         self.layout_mode = layout_mode
         self.expand = 1
         self.conditions = conditions
-        
+        self.spacing=0
+        self.page = page
         self.obj = obj
-        self.form_fields = FieldFactory(obj=self.obj, layout_mode=layout_mode, diplay_mode=diplay_mode, conditions = self.conditions)
+        self.form_fields = FieldFactory(obj=self.obj, layout_mode=layout_mode, diplay_mode=diplay_mode, conditions = self.conditions, page=self.page)
         self.form_buttons = FormButtons()
         
         self.controls = [self.form_fields, self.form_buttons]
