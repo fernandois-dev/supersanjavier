@@ -50,75 +50,37 @@ class NotDataTableHeader(ft.Container):
                         order_col = f'{key}-{self._dict[key]}'
                     
                 # HEADER ALIGMENT    
-                if "BooleanField" in type(col).__name__:
+                if col.aligment == "center":
                     header_aligment = ft.MainAxisAlignment.CENTER
-                elif "IntegerField" in type(col).__name__ :
-                    header_aligment = ft.MainAxisAlignment.END
-                elif "MoneyField" in type(col).__name__ :
+                elif col.aligment == "right":
                     header_aligment = ft.MainAxisAlignment.END
                 else:
                     header_aligment = ft.MainAxisAlignment.START
                     
-                        
-                if sort:
-                    if "desc" in order_col:
-                        icon = ft.Icon("arrow_drop_down")
-                    else:
-                        icon = ft.Icon("arrow_drop_up")
-                    
-                    text_header = ft.Container(
-                        content=ft.Row(
-                            controls=[ft.Text(col.verbose_name, weight="bold", expand=True), icon], 
-                            alignment=header_aligment), 
-                        margin=ft.margin.symmetric(horizontal=0),
-                    )
-                else:
-                    text_header = ft.Container(
-                        content=ft.Row(
-                            controls=[ft.Text(col.verbose_name, weight="bold"),],
-                            alignment=header_aligment),
-                        margin=ft.margin.symmetric(horizontal=0),
-                        expand=True,
-                    )
-                    
                 
-                # if "BooleanField" in type(col).__name__:
-                #     container = ft.Container(text_header, 
-                #                                         expand=1, alignment=ft.alignment.center, 
-                #                                         on_hover= (lambda e: on_hover(e)) if sort else None,
-                #                                         on_click= (lambda e: on_click(e)) if sort else None,
-                #                                         data=col.name,
-                #                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                #                                         )
-                # elif "IntegerField" in type(col).__name__ :
-                #     container = ft.Container(text_header, 
-                #                                         on_hover= (lambda e: on_hover(e)) if sort else None,
-                #                                         on_click= (lambda e: on_click(e)) if sort else None,
-                #                                         expand=1, 
-                #                                         data=col.name,
-                #                                         alignment=ft.alignment.center_right,
-                #                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                #                                         )
-                # else:
-                #     container = ft.Container(text_header, 
-                #                                         on_hover= (lambda e: on_hover(e)) if sort else None,
-                #                                         on_click= (lambda e: on_click(e)) if sort else None,
-                #                                         expand=1,
-                #                                         data=col.name,
-                #                                         padding=ft.padding.symmetric(horizontal=0),
-                #                                         alignment=ft.alignment.center_left,
-                #                                         bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                #                                         )
+                icon = ft.Container()
+                text_header_expand = None
+                if sort:
+                    icon = ft.Icon("arrow_drop_down") if "desc" in order_col else ft.Icon("arrow_drop_up")
+                    text_header_expand = 1
+                text_header = ft.Container(
+                    content=ft.Row(
+                        controls=[ft.Text(col.verbose_name, weight="bold", expand=text_header_expand),icon],
+                        alignment=header_aligment),
+                    margin=ft.margin.symmetric(horizontal=0),
+                    expand=True,
+                )
+                    
                 container = ft.Container(text_header, 
-                                                        on_hover= (lambda e: on_hover(e)) if sort else None,
-                                                        on_click= (lambda e: on_click(e)) if sort else None,
-                                                        expand=self.conditions.fields_expand.get(col.name, 1),
-                                                        data=col.name,
-                                                        padding=ft.padding.symmetric(horizontal=0),
-                                                        alignment=ft.alignment.center_left,
-                                                        bgcolor= self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                                                        margin=ft.margin.symmetric(horizontal=5),
-                                                        )
+                    on_hover=(lambda e: on_hover(e)) if sort else None,
+                    on_click=(lambda e: on_click(e)) if sort else None,
+                    expand=self.conditions.fields_expand.get(col.name, 1),
+                    data=col.name,
+                    padding=ft.padding.symmetric(horizontal=0),
+                    alignment=ft.alignment.center_left,
+                    bgcolor=self.bg_color_sec if col.name in order_col else self.bg_color_prin,
+                    margin=ft.margin.symmetric(horizontal=5),
+                    )
                 # container.expand = self.conditions.fields_expand.get(col.name, 1)
                 list_header_row.append(container)
                 

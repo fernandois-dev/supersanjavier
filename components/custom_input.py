@@ -32,6 +32,22 @@ STYLE_DEFAULT = {
     "height":50,
 }
 
+def format_currency(value):
+    """Formatea un número como moneda (separado por puntos cada 3 dígitos)."""
+    if value is None:
+        return ""
+    try:
+        return f"{int(value):,}".replace(",", ".")
+    except ValueError:
+        return ""
+
+def parse_currency(value):
+    """Convierte un valor formateado como moneda a un número entero."""
+    try:
+        return int(value.replace(".", ""))
+    except ValueError:
+        return None
+
 
 class CustomIconButton(ft.TextButton):
     def __init__(self, on_click, icon=ft.Icons.random, bgcolor=ft.Colors.PRIMARY_CONTAINER, *args, **kwargs):
@@ -133,7 +149,7 @@ class CustomMoneyField(ft.TextField):
         """Valor visible (formateado como moneda)."""
         if self._numeric_value is None:
             return ""
-        return self.format_currency(self._numeric_value)
+        return format_currency(self._numeric_value)
 
     @value.setter
     def value(self, new_value):
@@ -149,7 +165,7 @@ class CustomMoneyField(ft.TextField):
             else:
                 raise ValueError("El valor debe ser un número o una cadena formateada como moneda.")
         # Actualizar el valor visible en el campo
-        super(CustomMoneyField, self.__class__).value.fset(self, self.format_currency(self._numeric_value))
+        super(CustomMoneyField, self.__class__).value.fset(self, format_currency(self._numeric_value))
 
     @property
     def numeric_value(self):
@@ -161,7 +177,7 @@ class CustomMoneyField(ft.TextField):
         """Permite establecer directamente el valor numérico interno."""
         self._numeric_value = int(new_value) if new_value is not None else None
         # Actualizar el valor visible en el campo
-        super(CustomMoneyField, self.__class__).value.fset(self, self.format_currency(self._numeric_value))
+        super(CustomMoneyField, self.__class__).value.fset(self, format_currency(self._numeric_value))
 
     def handle_focus(self, e):
         """Seleccionar todo el texto al hacer focus."""
@@ -171,7 +187,7 @@ class CustomMoneyField(ft.TextField):
 
     def handle_blur(self, e):
         """Formatear el valor al perder el foco."""
-        self.numeric_value = self.parse_currency(super(CustomMoneyField, self.__class__).value.fget(self))
+        self.numeric_value = parse_currency(super(CustomMoneyField, self.__class__).value.fget(self))
         if self._numeric_value is not None:
             self.value = self._numeric_value  # Esto llamará al setter de `value`
             self.update()
@@ -180,30 +196,47 @@ class CustomMoneyField(ft.TextField):
         if self.custom_on_change:
             self.custom_on_change(None, value=self.numeric_value)
 
-    def format_currency(self, value):
-        """Formatea un número como moneda (separado por puntos cada 3 dígitos)."""
-        if value is None:
-            return ""
-        try:
-            return f"{int(value):,}".replace(",", ".")
-        except ValueError:
-            return ""
 
-    def parse_currency(self, value):
-        """Convierte un valor formateado como moneda a un número entero."""
-        try:
-            return int(value.replace(".", ""))
-        except ValueError:
-            return None
-
-# TODO Terinar de implementar CustomMoneyView
-class CustomMoneyView(ft.Row):
+class CustomMoneyView(ft.Container):
     def __init__(self, value, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.value = value
-        self.controls = [
-            ft.Text(self.format_currency(value), size=16, weight=ft.FontWeight.BOLD, align=ft.TextAlign.RIGHT)
-        ]
+        self.content = ft.Row(
+            controls = [
+                ft.Text("$ "),
+                ft.Text(format_currency(self.value))
+            ],
+            alignment=ft.MainAxisAlignment.END,
+        )
+        self.padding = ft.padding.only(right=10)
+        
+            
+class CustomIntegerView(ft.Container):
+    def __init__(self, value, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.value = value
+        self.content = ft.Row(
+            controls = [
+                ft.Text(format_currency(self.value))
+            ],
+            alignment=ft.MainAxisAlignment.END,
+        )
+        self.padding = ft.padding.only(right=10)
+
+       
+class CustomBooleanView(ft.Container):
+    def __init__(self, value, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.value = value
+        self.content = ft.Row(
+            controls = [
+                ft.Checkbox(
+                    value=self.value,
+                    disabled=True,
+                            )
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+        )
         
         
 class CustomTextField(ft.TextField):
@@ -683,22 +716,26 @@ def get_input_by_type(input_type: str, **kwargs):
     filtered_kwargs = filter_kwargs(list_inputs[input_type], kwargs)
     
     if input_type in list_inputs:
+        filtered_kwargs = filter_kwargs(list_inputs[input_type], kwargs)
         return list_inputs[input_type](**filtered_kwargs)
     else:
-        return None
+        filtered_kwargs = filter_kwargs(CustomTextField, kwargs)
+        return CustomTextField(**filtered_kwargs)
 
 # TODO Agregar funcionalidad para visualizar los campos.
 def get_view_by_type(input_type: str, **kwargs):
     list_inputs = {
-            "CustomAutoField": CustomAutoField,
+            "CustomAutoField": CustomIntegerView,
+            "CustomMoneyField": CustomMoneyView,
+            "CustomIntegerField": CustomIntegerView,
+            "CustomBooleanField": CustomBooleanView,
             }
-    
-    filtered_kwargs = filter_kwargs(list_inputs[input_type], kwargs)
-    
     if input_type in list_inputs:
+        filtered_kwargs = filter_kwargs(list_inputs[input_type], kwargs)
         return list_inputs[input_type](**filtered_kwargs)
     else:
-        return None
+        filtered_kwargs = filter_kwargs(ft.Text, kwargs)
+        return ft.Text(**filtered_kwargs)
 
 def get_accepted_params(cls):
     """Obtiene los parámetros aceptados por el constructor de una clase."""
@@ -747,7 +784,7 @@ class ManagerField(ft.Container):
                 
             self.content = self.custom_edit
         else:
-            self.custom_view = ft.Text(self.value)
+            self.custom_view = get_view_by_type(self.input_type, **kwargs) if not self.override_view_type else self.override_view_type(**kwargs)
             self.content = self.custom_view
     
     def change_mode(self, mode):

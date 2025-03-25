@@ -12,6 +12,7 @@ class CustomCharField(models.CharField):
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
         self.read_only = read_only
+        self.aligment = "left"
         
 class CustomEmailField(models.EmailField):
     description = "EmailField"
@@ -24,6 +25,7 @@ class CustomEmailField(models.EmailField):
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
         self.read_only = read_only
+        self.aligment = "left"
         
 class CustomDateTimeField(models.DateTimeField):
     description = "DateTimeField"
@@ -36,6 +38,7 @@ class CustomDateTimeField(models.DateTimeField):
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
         self.read_only = read_only
+        self.aligment = "right"
         
 class CustomAutoField(models.AutoField):
     description = "AutoField"
@@ -46,6 +49,7 @@ class CustomAutoField(models.AutoField):
         self.hidden = hidden
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
+        self.aligment = "right"
         
 class CustomIntegerField(models.IntegerField):
     description = "IntegerField"
@@ -57,6 +61,7 @@ class CustomIntegerField(models.IntegerField):
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
         self.read_only = read_only
+        self.aligment = "right"
         
 class CustomMoneyField(models.IntegerField):
     description = "MoneyField"
@@ -68,6 +73,7 @@ class CustomMoneyField(models.IntegerField):
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
         self.read_only = read_only
+        self.aligment = "right"
         
 class CustomBooleanField(models.BooleanField):
     description = "BooleanField"
@@ -79,6 +85,7 @@ class CustomBooleanField(models.BooleanField):
         self.is_searchable = is_searchable
         self.is_sortable = is_sortable
         self.read_only = read_only
+        self.aligment = "center"
         
 class CustomForeignKey(models.ForeignKey):
     description = "ForeignKey"
@@ -86,5 +93,6 @@ class CustomForeignKey(models.ForeignKey):
     def __init__(self, *args, hidden=False, is_sortable = False, **kwargs):
         self.hidden = hidden
         self.is_sortable = is_sortable
+        self.aligment = "left"
         
         super().__init__(*args, **kwargs)
