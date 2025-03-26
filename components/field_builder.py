@@ -140,14 +140,6 @@ class FieldBuilder(ft.Column):
     def create_button(self, *args, **kwargs):
         self.form_buttons.create_button(*args, **kwargs)
     
-    def validate(self):
-        is_valid: bool = True
-        for field in self.form_fields.get_fields():
-            if hasattr(field, 'validate'):
-                if not field.validate():
-                    is_valid = False
-        return is_valid
-    
     def check_is_dirty(self):
         return not self.form_fields.check_is_dirty()
     

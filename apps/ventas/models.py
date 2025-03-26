@@ -71,7 +71,7 @@ class Venta(models.Model):
 class DetalleVenta(models.Model):
     id = CustomAutoField(primary_key=True, verbose_name="ID", null=False, blank=False, editable=False)
     venta = CustomForeignKey(Venta, verbose_name="Venta", on_delete=models.CASCADE, null=False, blank=False)
-    producto = CustomForeignKey(Producto, verbose_name="Producto", on_delete=models.CASCADE, null=False, blank=False)
+    producto = CustomForeignKey(Producto, verbose_name="Producto", on_delete=models.CASCADE, null=False, blank=False, is_sortable=True)
     cantidad = CustomIntegerField(verbose_name="Cantidad", null=False, blank=False)
     precio = CustomMoneyField(verbose_name="Precio", null=False, blank=False)
     total = CustomMoneyField(verbose_name="Total", null=False, blank=False, read_only=True, default=0)

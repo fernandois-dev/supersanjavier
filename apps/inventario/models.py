@@ -6,8 +6,8 @@ from data.custom_fields import CustomAutoField, CustomBooleanField, CustomCharFi
 
 class Producto(models.Model):
     id = CustomAutoField(primary_key=True, verbose_name="ID", null=False, blank=False, editable=False)
-    codigo = CustomCharField(max_length=10, verbose_name="Código", null=False, blank=False, validators=[MinLengthValidator(3)])
-    nombre = CustomCharField(max_length=100, verbose_name="Nombre", null=False, blank=False)
+    codigo = CustomCharField(max_length=10, verbose_name="Código", null=False, blank=False, validators=[MinLengthValidator(3)], is_sortable=True, is_searchable=True)
+    nombre = CustomCharField(max_length=100, verbose_name="Nombre", null=False, blank=False, is_sortable=True, is_searchable=True)
     descripcion = CustomCharField(max_length=200, verbose_name="Descripción", null=True, blank=True)
     precio_compra = CustomMoneyField(verbose_name="Precio Compra", null=False, blank=False)
     precio_venta = CustomMoneyField(verbose_name="Precio Venta", null=False, blank=False)

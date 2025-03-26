@@ -6,7 +6,7 @@ from pages.conditions import Conditions
 from components.custom_input import DisplayMode, LayoutMode, get_input_by_type
 
 class NotDataTableHeader(ft.Container):
-    def __init__(self, data, model, is_chk_column_enabled = True, is_being_editing = False, conditions=Conditions(), *args, **kwargs):
+    def __init__(self, data, model, is_chk_column_enabled = True, is_editable = False, conditions=Conditions(), *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_chk_column_enabled = is_chk_column_enabled
         self.content= None
@@ -20,7 +20,7 @@ class NotDataTableHeader(ft.Container):
         self.handle_all_row_selected = None
         self._data = data
         self._model = model
-        self.is_being_editing = is_being_editing
+        self.is_editable = is_editable
         
         self.conditions = conditions
         
@@ -32,7 +32,7 @@ class NotDataTableHeader(ft.Container):
         if not list_header_row:
             if self.is_chk_column_enabled: list_header_row.append(self.chk_column)
             
-            if self.is_being_editing: list_header_row.append(ft.Container(width=40))
+            if self.is_editable: list_header_row.append(ft.Container(width=40))
             
             fields_order = self.conditions.fields_order or [field.name for field in self._model._meta.fields]
         
@@ -43,7 +43,7 @@ class NotDataTableHeader(ft.Container):
                 if col.hidden or col.name in self.conditions.fields_excluded: 
                     continue
                 
-                sort = getattr(col, "is_sortable", False)
+                
                 order_col = ""
                 for key in self._dict:
                     if key == col.name:
@@ -60,6 +60,7 @@ class NotDataTableHeader(ft.Container):
                 
                 icon = ft.Container()
                 text_header_expand = None
+                sort = getattr(col, "is_sortable", False) if not self.is_editable else False
                 if sort:
                     icon = ft.Icon("arrow_drop_down") if "desc" in order_col else ft.Icon("arrow_drop_up")
                     text_header_expand = 1
@@ -76,10 +77,10 @@ class NotDataTableHeader(ft.Container):
                     on_click=(lambda e: on_click(e)) if sort else None,
                     expand=self.conditions.fields_expand.get(col.name, 1),
                     data=col.name,
-                    padding=ft.padding.symmetric(horizontal=0),
+                    padding=ft.padding.symmetric(horizontal=5),
                     alignment=ft.alignment.center_left,
                     bgcolor=self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                    margin=ft.margin.symmetric(horizontal=5),
+                    # margin=ft.margin.symmetric(horizontal=5),
                     )
                 # container.expand = self.conditions.fields_expand.get(col.name, 1)
                 list_header_row.append(container)
@@ -228,14 +229,13 @@ class NotDataTable(ft.Column):
         
         self.chk_column = None
         
+        self.component_buttons = ft.Container()
         self.component_header = ft.Column(controls=[], spacing=0)
         self.component_body = ft.Column(controls=[], spacing=0)
-        self.component_footer = ft.Column(controls=[], spacing=0)
-        self.component_buttons = ft.Container()
-        
+        self.component_footer = ft.Column(controls=[], spacing=0)     
         self.controls = [self.component_buttons, self.component_header, self.component_body, self.component_footer]
         
-        self.switch_edit = ft.Switch(label="Editar", on_change=self.on_changed_switch_edit, value=True)
+        # self.switch_edit = ft.Switch(label="Editar", on_change=self.on_changed_switch_edit, value=True)
         self.btn_add_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.ADD, size=28),]),
                     width=40,height=40,
                     style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.PRIMARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
@@ -255,7 +255,7 @@ class NotDataTable(ft.Column):
         self._model = model
         
     def build_header(self):
-        self.header = NotDataTableHeader(is_chk_column_enabled=self.is_chk_column_enabled, data=self._data, model=self._model, is_being_editing=self.switch_edit.value and self.is_editable, conditions=self.conditions)
+        self.header = NotDataTableHeader(is_chk_column_enabled=self.is_chk_column_enabled, data=self._data, model=self._model, is_editable=self.is_editable, conditions=self.conditions)
         self.header.on_click_column = self.on_click_column
         self.header.handle_all_row_selected = self.handle_all_row_selected
         self.header.build_header()
@@ -267,8 +267,10 @@ class NotDataTable(ft.Column):
         for idx, obj in enumerate(self._data):
             list_data_row.append(self.make_row(idx, obj))
         self.component_body.controls=list_data_row
-        if self.is_editable and self.switch_edit.value:
-            self.component_body.controls.append(ft.Container(content=self.btn_add_row, margin=ft.margin.symmetric(horizontal=0, vertical=5)))
+        if self.is_editable:
+            self.component_footer.controls.append(ft.Container(content=self.btn_add_row, margin=ft.margin.symmetric(horizontal=0, vertical=5)))
+        else:
+            self.component_footer.controls = []
         a = 0
         
         
@@ -280,11 +282,11 @@ class NotDataTable(ft.Column):
         self.build_body()
         
         # self.controls = [self.component_header, self.component_body]
-        if self.is_editable:
-            self.switch_edit.value = False if self._data else True
-            self.controls.insert(0, ft.Container(content=ft.Row(controls=[self.switch_edit], 
-                                                                alignment=ft.MainAxisAlignment.END), 
-                                                 margin=ft.margin.symmetric(horizontal=10, vertical=5)))
+        # if self.is_editable:
+        #     self.switch_edit.value = False if self._data else True
+        #     self.controls.insert(0, ft.Container(content=ft.Row(controls=[self.switch_edit], 
+        #                                                         alignment=ft.MainAxisAlignment.END), 
+        #                                          margin=ft.margin.symmetric(horizontal=10, vertical=5)))
         # self.update()
             
     def make_row(self, idx, obj):
@@ -294,14 +296,14 @@ class NotDataTable(ft.Column):
         self.chk_column = ft.Checkbox(value= False, width=40, height=40, on_change=lambda e: handle_row_selected(e), data=obj)
         
         if self.is_chk_column_enabled: list_data_cell.append(self.chk_column)
-        if self.is_editable and self.switch_edit.value: 
+        if self.is_editable: 
             btn_remove_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.REMOVE, size=28),]),
                                            width=40, height=30,
                                            style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.TERTIARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
                                            on_click=lambda e, idx=idx: self.delete_row(e, idx))
             list_data_cell.append(ft.Container(content=btn_remove_row, margin=ft.margin.symmetric(horizontal=0, vertical=0)))
         
-        diplay_mode=DisplayMode.EDIT if self.switch_edit.value and self.is_editable else DisplayMode.VIEW
+        diplay_mode=DisplayMode.EDIT if self.is_editable else DisplayMode.VIEW
         list_data_cell.append(FieldBuilder(obj=obj, layout_mode=LayoutMode.HORIZONTAL, diplay_mode=diplay_mode, conditions=self.conditions, page=self.page))
             
         def handle_row_selected(e):
@@ -312,7 +314,10 @@ class NotDataTable(ft.Column):
                 self.on_row_selected(list_rows_selected)
                 
             e.control.update()
-        
+        long_press = None
+        if not self.is_editable:
+            long_press = lambda e: self.handle_long_press(obj)
+            
         row_container = ft.Container(content= ft.Row(controls=list_data_cell, vertical_alignment=ft.VerticalAlignment.CENTER, spacing=0),
             # height=44,
             padding=ft.padding.only(top=2, bottom=0),
@@ -320,12 +325,12 @@ class NotDataTable(ft.Column):
             bgcolor= ft.Colors.with_opacity(0.0 if idx%2 == 0 else 0.3  , ft.Colors.SECONDARY_CONTAINER),
             alignment=ft.alignment.center,
             key=idx,
-            # on_long_press= lambda e: self.handle_long_press(obj),
+            on_long_press=long_press,
             data={"obj_original":original_obj, "chk":self.chk_column},)
         def on_hover(e):
             row_container.bgcolor =  ft.Colors.with_opacity(0.8, ft.Colors.SECONDARY_CONTAINER) if e.data == "true" else ft.Colors.with_opacity(0.1 if e.control.key%2 == 0 else 0.4  , ft.Colors.SECONDARY_CONTAINER)
             row_container.update()
-        if not (self.is_editable and self.switch_edit.value):
+        if not self.is_editable:
             row_container.on_hover = lambda e: on_hover(e)      
         
         return row_container
@@ -371,15 +376,10 @@ class NotDataTable(ft.Column):
         if self.on_long_press:
             self.on_long_press(obj)
         
-    def clean_selection(self):
-        for row in self.rows:
-            row[0].value = False
-        self.update()
-        
     def add_row(self):
         idx = len(self.rows)
         new_row = self.make_row(idx, self._model())
-        self.component_body.controls.insert(0, new_row)
+        self.component_body.controls.append(new_row)
         self.update_body()
     
     def compare_objects(self, obj1, obj2):
@@ -401,17 +401,12 @@ class NotDataTable(ft.Column):
             DlgConfirm(page=self.page, title="Confirma que desea eliminar los registros?", fn_yes=lambda: self.confirm_delete_row(idx))
         else:
             self.confirm_delete_row(idx)
-    # def delete_selected_rows(self, e):
-    #     selected_rows = self.list_rows_selected()
-    #     self._data = [obj for obj in self._data if obj.id not in selected_rows]
-    #     self.build_body()
-    #     self.update_body()
     
-    def get_row_by_id(self, id):    
-        for row in self.rows:
-            if row[0].data.id == id:
-                return row
-        return None
+    # def get_row_by_id(self, id):    
+    #     for row in self.rows:
+    #         if row[0].data.id == id:
+    #             return row
+    #     return None
     
     def save_changes(self):
         for row in self.rows:
@@ -421,12 +416,12 @@ class NotDataTable(ft.Column):
                     setattr(obj, col.name, cell.content.value)
             obj.save()
     
-    def on_changed_switch_edit(self, e):
-        self.build_header()
-        self.build_body()
-        # self.is_being_edited = e.control.value
+    # def on_changed_switch_edit(self, e):
+    #     self.build_header()
+    #     self.build_body()
+    #     # self.is_being_edited = e.control.value
         
-        # self.create_table()
+    #     # self.create_table()
         
-        self.update()
+    #     self.update()
             

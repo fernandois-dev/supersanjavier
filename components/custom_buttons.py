@@ -23,7 +23,7 @@ class CustomButtonCupertino(ft.CupertinoButton):
 
     def on_hover(self, e: ft.HoverEvent):
         if e.data == "true":
-            self.bgcolor = ft.Colors.SECONDARY_CONTAINER
+            self.bgcolor = ft.Colors.with_opacity(0.5, self.bgcolor_original)
         else:
             self.bgcolor = self.bgcolor_original
         self.update()

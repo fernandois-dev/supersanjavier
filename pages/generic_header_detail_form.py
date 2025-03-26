@@ -1,4 +1,5 @@
 import flet as ft
+from components.custom_buttons import CustomButtonCupertino
 from components.custom_input import LayoutMode
 from components.field_builder import FieldBuilder
 from components.custom_dialogs import DlgConfirm, DlgAlert
@@ -21,8 +22,29 @@ class GenericHeaderDetailForm(ft.Container):
         self.params = params
         
         self.conditions = conditions
+        self.btn_aceptar = CustomButtonCupertino("Aceptar", "save", lambda e: self.handle_btn_acepta(), ft.Colors.PRIMARY, ft.Colors.ON_PRIMARY)
+        self.btn_cancelar = CustomButtonCupertino("Cancelar", "cancel", lambda e: self.handle_btn_cancelar(), ft.Colors.SECONDARY_CONTAINER, ft.Colors.ON_SURFACE)
+        self.container_buttons = ft.Container(
+            content=ft.Row([
+                    self.btn_cancelar,
+                    self.btn_aceptar,
+                ],
+                alignment=ft.MainAxisAlignment.END,
+            ),
+            # padding=ft.padding.symmetric(horizontal=10, vertical=10),
+        )
+        self.txt_page_title = ft.Text(f"{"Editar" if self.obj else "Agregar" } {self._model._meta.object_name}", size=18)
+        self.container_header = ft.Container(
+            content=ft.Row([self.txt_page_title, self.container_buttons], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        )
         
         self.build_page()
+        
+    def handle_btn_aceptar(self, e: ft.ControlEvent):
+        pass
+    
+    def handle_btn_cancelar(self, e: ft.ControlEvent):
+        pass
     
     def build_page(self):
         if '_obj' in self.params:
@@ -47,11 +69,10 @@ class GenericHeaderDetailForm(ft.Container):
             related_table.set_model(related_queryset.model)
             related_table.set_data(related_queryset)
             related_table.create_table()
-            related_table.build_body()
             related_tables.append(ft.Column(controls=[related_table]))
         
         principal_column = ft.Column(controls=[
-            ft.Text("Botonera"),
+            self.container_header,
             ft.Divider(),
             self.form,
             ft.Divider(),
