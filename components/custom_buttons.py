@@ -27,4 +27,15 @@ class CustomButtonCupertino(ft.CupertinoButton):
         else:
             self.bgcolor = self.bgcolor_original
         self.update()
+        
 
+class CustomIconButton(ft.TextButton):
+    def __init__(self, on_click, icon=ft.Icons.random, bgcolor=ft.Colors.PRIMARY_CONTAINER, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.icon=icon
+        self.bgcolor=bgcolor
+        self.width=40
+        self.height=40
+        self.content=ft.Row([ft.Icon(name=self.icon, size=28)])
+        self.style=ft.ButtonStyle(padding=ft.padding.all(9), bgcolor=self.bgcolor, shape=ft.RoundedRectangleBorder(radius=3))
+        self.on_click=on_click

@@ -4,6 +4,7 @@ import flet as ft
 from collections.abc import Callable
 import locale
 
+from components.custom_buttons import CustomIconButton
 from pages.conditions import Conditions
 locale.setlocale(locale.LC_ALL, 'es_CL')
 import datetime
@@ -47,18 +48,6 @@ def parse_currency(value):
         return int(value.replace(".", ""))
     except ValueError:
         return None
-
-
-class CustomIconButton(ft.TextButton):
-    def __init__(self, on_click, icon=ft.Icons.random, bgcolor=ft.Colors.PRIMARY_CONTAINER, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.icon=icon
-        self.bgcolor=bgcolor
-        self.width=40
-        self.height=40
-        self.content=ft.Row([ft.Icon(name=self.icon, size=28)])
-        self.style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=self.bgcolor, shape=ft.RoundedRectangleBorder(radius=3))
-        self.on_click=on_click
 
 
 class CustomAutoField(ft.TextField):
@@ -352,6 +341,8 @@ class CustomDateTimeField(ft.Column):
         self.txt_hora.update()
         self.update_value()
         # self.page.close_control(self.time_picker)
+        
+    
 
     def open_date_picker(self, e):
         self.page.dialog = self.date_picker
@@ -369,6 +360,9 @@ class CustomDateTimeField(ft.Column):
                 self.value = None
         else:
             self.value = None
+        # Llamar al callback `on_change` si está definido
+        if self.on_change:
+            self.on_change(None, value=self.value)
 
 
 class CustomCheckbox(ft.Checkbox):
@@ -414,7 +408,8 @@ class CustomDropdown(ft.DropdownM2):
 
 
 class SearchField(ft.Container):
-    def __init__(self , field,  border=None, on_change=None, on_submit = None, width=350, name="", label=None, value=None,data=None, *args, **kwargs):
+    def __init__(self , field,  border=None, on_change=None, on_submit = None, width=350, name="", label=None, value=None,data=None, helper_text="", 
+                 helper_style=None, border_color=None, hint_text=None, hint_style=None, *args, **kwargs):
         super().__init__()
         self.on_change = on_change
         self.options = []  # Lista de opciones posibles
@@ -426,6 +421,11 @@ class SearchField(ft.Container):
         self.value = value
         self.data = data
         self.border = border
+        self._helper_text = helper_text
+        self._helper_style = helper_style
+        self._border_color = border_color
+        self._hint_text = hint_text
+        self._hint_style = hint_style
 
         # Configurar el TextField
         self.text_field = ft.TextField(
@@ -435,6 +435,7 @@ class SearchField(ft.Container):
             on_change=self.update_suggestions,
             expand=True,
             label=self.label,
+            value=self.value
         )
         self.modal_text_field = ft.TextField(
             shift_enter=True,
@@ -468,6 +469,59 @@ class SearchField(ft.Container):
             elevation=10,
         )
         
+        if self.value: self.text_field.bgcolor = ft.Colors.SECONDARY_CONTAINER
+     
+    @property
+    def helper_text(self):
+        return self._helper_text
+    
+    @helper_text.setter
+    def helper_text(self, value):
+        self._helper_text = value
+        self.text_field.helper_text = value
+        self.text_field.update()
+        
+    @property
+    def hint_text(self):
+        return self._hint_text
+    
+    @hint_text.setter
+    def hint_text(self, value):
+        self._hint_text = value
+        self.text_field.hint_text = value
+        self.text_field.update()
+        
+    @property
+    def hint_style(self):
+        return self._hint_style
+    
+    @hint_style.setter
+    def hint_style(self, value):
+        self._hint_style = value
+        self.text_field.hint_style = value
+        self.text_field.update()
+        
+    @property
+    def helper_style(self):
+        return self._helper_style
+    
+    @helper_style.setter
+    def helper_style(self, value):
+        self._helper_style = value
+        self.text_field.helper_style = value
+        self.text_field.update()
+        
+    @property
+    def border_color(self):
+        return self._border_color
+    
+    @border_color.setter
+    def border_color(self, value):
+        self._border_color = value
+        self.text_field.border_color = value
+        self.text_field.update()
+        
+            
     @property
     def border(self):
         return None

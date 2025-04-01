@@ -53,4 +53,5 @@ class ControlPages(ft.Column):
             self.controls = [page_to_render]
             self.update()
         else:
-            self.controls = [NotFoundPage()]
+            self.controls = [ft.Text("Page not found")]
+            self.update()

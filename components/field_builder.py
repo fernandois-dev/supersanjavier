@@ -6,27 +6,6 @@ from components.custom_input import DisplayMode, LayoutMode, ManagerField
 from pages.conditions import Conditions
 
 
-
-class FormButtons(ft.Row):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.alignment=ft.MainAxisAlignment.END
-        self.controls = []
-        self.width=350
-
-    def create_button(self, nombre, fn, color = ft.Colors.PRIMARY, bgcolor = ft.Colors.ON_PRIMARY):
-        self.controls.append(
-            ft.CupertinoButton(
-                content=ft.Text(nombre),
-                height=39, width=100,
-                padding=ft.padding.symmetric(horizontal=10),
-                on_click= lambda e: fn(),
-                bgcolor=bgcolor,
-                color=color
-            )
-        )
-
-
 class FieldFactory(ft.Container):
     def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, conditions = Conditions(), diplay_mode = DisplayMode.EDIT, page: ft.Page= None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -119,7 +98,10 @@ class FieldFactory(ft.Container):
         return True
     
     def check_is_dirty(self):
-        return not self.is_dirty
+        return self.is_dirty
+    
+    def check_is_horizontal(self):
+        return self.layout_mode == LayoutMode.HORIZONTAL
     
 
 class FieldBuilder(ft.Column):
@@ -133,49 +115,68 @@ class FieldBuilder(ft.Column):
         self.page = page
         self.obj = obj
         self.form_fields = FieldFactory(obj=self.obj, layout_mode=layout_mode, diplay_mode=diplay_mode, conditions = self.conditions, page=self.page)
-        self.form_buttons = FormButtons()
         
-        self.controls = [self.form_fields, self.form_buttons]
+        self.controls = [self.form_fields]
         
     def create_button(self, *args, **kwargs):
         self.form_buttons.create_button(*args, **kwargs)
     
     def check_is_dirty(self):
-        return not self.form_fields.check_is_dirty()
+        return self.form_fields.check_is_dirty()
+    
+    def check_is_new(self):
+        return self.obj._state.adding
     
     def set_errors(self, errors):
+        is_horizontal = self.form_fields.check_is_horizontal()
         for manager in self.form_fields.get_fields():
             field = manager.get_field()
-            if field.name in errors.message_dict:
-                field.helper_text = ' - '.join(errors.message_dict[field.name])
-                field.helper_style = ft.TextStyle(color="red")
-                field.border_color = "red"
-               
-            else:
+            if is_horizontal:
                 field.helper_text = None
-                field.border_color = None
+                if field.name in errors.message_dict:
+                    field.border = ft.InputBorder.UNDERLINE
+                    field.border_color = "red"
+                    field.hint_text = ' - '.join(errors.message_dict[field.name])
+                    field.hint_style = ft.TextStyle(color="red", size=9)
+                else:
+                    field.border_color = None
+                    field.hint_text = None
+                    field.border = ft.InputBorder.NONE
+            else:
+                if field.name in errors.message_dict:
+                    field.helper_text = ' - '.join(errors.message_dict[field.name])
+                    field.helper_style = ft.TextStyle(color="red")
+                    field.border_color = "red"
+                
+                else:
+                    field.helper_text = None
+                    field.border_color = None
             field.update()
 
-    def save(self):
-        try:
-            self.obj.full_clean()
-            self.obj.save()
-            return True
-        except ValidationError as ex:
-            self.set_errors(ex)
-            return False
+    def save(self, parent_obj=None, parent_field_name=None):
+        if parent_obj and parent_field_name and self.obj._state.adding:
+            setattr(self.obj, parent_field_name, parent_obj)
+        if self.obj._state.adding or self.form_fields.check_is_dirty():
+            try:
+                self.obj.full_clean()
+                self.obj.save()
+                return True
+            except ValidationError as ex:
+                self.set_errors(ex)
+                return False
+        return True
     
     
-    def get_values(self):
-        ret = {}
-        for field in self.form_fields.get_fields():
-            if field.name == "id":
-                if f"{field.name}".isdigit():
-                    ret[field.name] = field.value
-            else:
-                if self.form_fields.init_values[field.name] != field.value:
-                    ret[field.name] = field.value
-        return ret
+    # def get_values(self):
+    #     ret = {}
+    #     for field in self.form_fields.get_fields():
+    #         if field.name == "id":
+    #             if f"{field.name}".isdigit():
+    #                 ret[field.name] = field.value
+    #         else:
+    #             if self.form_fields.init_values[field.name] != field.value:
+    #                 ret[field.name] = field.value
+    #     return ret
             
    
     

@@ -1,4 +1,5 @@
 import flet as ft
+from components.custom_buttons import CustomButtonCupertino
 from components.custom_input import DisplayMode
 from components.field_builder import FieldBuilder
 from components.custom_dialogs import DlgConfirm, DlgAlert
@@ -27,30 +28,31 @@ class GenericPageFormStandar(ft.Container):
         obj = self.obj if self.obj else self._model()
         
         self.form = FieldBuilder(obj, diplay_mode=DisplayMode.EDIT)
-        self.form.create_button(
-            nombre="Cancelar", 
-            fn=self.btn_cancelar,
-            bgcolor=ft.Colors.SECONDARY, 
-            color=ft.Colors.ON_SECONDARY
+        self.btn_aceptar = CustomButtonCupertino("Aceptar", "save", lambda e: self.handle_btn_aceptar(), ft.Colors.PRIMARY, ft.Colors.ON_PRIMARY)
+        self.btn_cancelar = CustomButtonCupertino("Cancelar", "cancel", lambda e: self.handle_btn_cancelar(), ft.Colors.SECONDARY_CONTAINER, ft.Colors.ON_SURFACE)
+        self.container_buttons = ft.Container(
+            content=ft.Row([
+                    self.btn_cancelar,
+                    self.btn_aceptar,
+                ],
+                alignment=ft.MainAxisAlignment.END,
+                width=350,
+            ),
         )
-        self.form.create_button(
-            nombre="Aceptar", 
-            fn=self.btn_aceptar
-        )
-        # self.form.update_controls()
         
         titulo = f"{  "Editar" if self.obj else "Agregar" } {self._model._meta.object_name}"
         
         contenedor = ft.Column(controls=[
             ft.Text(titulo,  size=18),
             ft.Divider(height=5),
-            self.form
+            self.form,
+            self.container_buttons
         ])
         
         self.content= contenedor
         # self.update()
     
-    def btn_aceptar(self):
+    def handle_btn_aceptar(self):
         
         is_save_correctly = self.form.save()
         if is_save_correctly:
@@ -58,7 +60,7 @@ class GenericPageFormStandar(ft.Container):
             self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
      
         
-    def btn_cancelar(self):
+    def handle_btn_cancelar(self):
         # validar si se modificó
         if self.form.check_is_dirty():
             DlgConfirm(page=self.page,title="Desea salir sin guardar?", fn_yes=self.confirma_salir)

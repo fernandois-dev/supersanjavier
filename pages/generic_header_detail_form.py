@@ -1,10 +1,11 @@
 import flet as ft
-from components.custom_buttons import CustomButtonCupertino
+from components.custom_buttons import CustomButtonCupertino, CustomIconButton
 from components.custom_input import LayoutMode
 from components.field_builder import FieldBuilder
 from components.custom_dialogs import DlgConfirm, DlgAlert
 from components.not_data_table import NotDataTable
 from pages.conditions import Conditions
+from django.db import transaction
 
 
 
@@ -22,12 +23,13 @@ class GenericHeaderDetailForm(ft.Container):
         self.params = params
         
         self.conditions = conditions
-        self.btn_aceptar = CustomButtonCupertino("Aceptar", "save", lambda e: self.handle_btn_acepta(), ft.Colors.PRIMARY, ft.Colors.ON_PRIMARY)
-        self.btn_cancelar = CustomButtonCupertino("Cancelar", "cancel", lambda e: self.handle_btn_cancelar(), ft.Colors.SECONDARY_CONTAINER, ft.Colors.ON_SURFACE)
+        self.btn_save = CustomIconButton(icon=ft.Icons.SAVE, on_click=lambda e: self.handle_btn_save(), bgcolor=ft.Colors.PRIMARY_CONTAINER)
+        self.btn_exit = CustomButtonCupertino("Salir", ft.Icons.CLOSE, lambda e: self.handle_btn_exit(), ft.Colors.SECONDARY_CONTAINER, ft.Colors.ON_SURFACE)
+        self.related_tables = []
         self.container_buttons = ft.Container(
             content=ft.Row([
-                    self.btn_cancelar,
-                    self.btn_aceptar,
+                    self.btn_save,
+                    self.btn_exit,
                 ],
                 alignment=ft.MainAxisAlignment.END,
             ),
@@ -40,11 +42,42 @@ class GenericHeaderDetailForm(ft.Container):
         
         self.build_page()
         
-    def handle_btn_aceptar(self, e: ft.ControlEvent):
-        pass
+        
+    def handle_btn_save(self):
+        try:
+            with transaction.atomic():  # Inicia un bloque transaccional
+                # Guardar el objeto padre
+                is_save_correctly = self.form.save()
+                if not is_save_correctly:
+                    raise Exception("Error al guardar el objeto padre.")
     
-    def handle_btn_cancelar(self, e: ft.ControlEvent):
-        pass
+                # Actualizar el objeto padre después de guardar
+                self.obj = self.form.obj
+    
+                # Guardar los objetos relacionados (hijos)
+                for related_table in self.related_tables:
+                    related_table.parent_obj = self.obj  # Asociar el objeto padre
+                    is_save_correctly = related_table.save()
+                    if not is_save_correctly:
+                        raise Exception("Error al guardar los objetos relacionados.")
+    
+            # Si todo se guarda correctamente, mostrar un mensaje de éxito
+            DlgAlert(page=self.page, title="Registro guardado correctamente")
+            # self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
+    
+        except Exception as e:
+            # Manejar errores y mostrar un mensaje al usuario
+            DlgAlert(page=self.page, title=f"Error al guardar: {str(e)}")
+        
+    # def handle_btn_save(self):
+    #     is_save_correctly = self.form.save()
+    #     if is_save_correctly:
+    #         for related_table in self.related_tables:
+    #             is_save_correctly = related_table.save(parent_obj=self.obj, parent_field_name=self.obj._meta.model_name)
+    #             if not is_save_correctly:
+    #                 break
+    #         DlgAlert(page=self.page, title="Registo guardado correctamente")
+    #         # self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
     
     def build_page(self):
         if '_obj' in self.params:
@@ -52,31 +85,32 @@ class GenericHeaderDetailForm(ft.Container):
         else:
             self.obj = self._model()
             
-        obj = self.obj if self.obj else self._model()
+        # obj = self.obj if self.obj else self._model()
         
-        self.form = FieldBuilder(obj, layout_mode=LayoutMode.HORIZONTAL_WRAP, conditions = self.conditions, page=self.page)
+        self.form: FieldBuilder = FieldBuilder(self.obj, layout_mode=LayoutMode.HORIZONTAL_WRAP, conditions = self.conditions, page=self.page)
         # self.form.create_fields()
         # self.form.update_controls()
         
-        related_objects = self.get_related_objects(obj)
+        related_objects = self.get_related_objects(self.obj)
         
         # Crear tablas para objetos relacionados
-        related_tables = []
+        self.related_tables = []
         for related_name, related_queryset in related_objects.items():
             ro_conditions = Conditions()
             ro_conditions.init_from_dict(self.conditions.related_objects.get(related_name, {}))
-            related_table = NotDataTable(is_chk_column_enabled=False, is_editable=True, conditions=ro_conditions, page=self.page)
+            related_table = NotDataTable(is_chk_column_enabled=False, is_editable=True, conditions=ro_conditions, 
+                                         page=self.page)
             related_table.set_model(related_queryset.model)
             related_table.set_data(related_queryset)
             related_table.create_table()
-            related_tables.append(ft.Column(controls=[related_table]))
+            self.related_tables.append(related_table)
         
         principal_column = ft.Column(controls=[
             self.container_header,
             ft.Divider(),
             self.form,
             ft.Divider(),
-            *related_tables,
+            *self.related_tables,
             ft.Divider(),
             ft.Text("Resumen")
         ])
@@ -97,20 +131,27 @@ class GenericHeaderDetailForm(ft.Container):
                 related_objects[related_name] = relation.related_model.objects.none()   # Devolver una lista vacía para cada relación
         return related_objects
     
-    def btn_aceptar(self):
+    # def btn_aceptar(self):
         
-        is_save_correctly = self.form.save()
-        if is_save_correctly:
-            DlgAlert(page=self.page, title="Registo guardado correctamente")
-            self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
+    #     is_save_correctly = self.form.save()
+    #     if is_save_correctly:
+    #         DlgAlert(page=self.page, title="Registo guardado correctamente")
+    #         self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
      
         
-    def btn_cancelar(self):
+    def handle_btn_exit(self):
+        is_dirty = self.form.check_is_dirty()
+        if not is_dirty:
+            for related_table in self.related_tables:
+                if related_table.check_is_dirty():
+                    is_dirty = True
+                    break
         # validar si se modificó
-        if not self.form.validate_form_change():
-            DlgConfirm(page=self.page,title="Desea salir sin guardar?", fn_yes=self.confirma_salir)
+        if is_dirty:
+            # Si se modificó, preguntar si desea salir sin guardar
+            DlgConfirm(page=self.page,title="Desea salir sin guardar?", fn_yes=self.confirm_exit)
         else:
             self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
 
-    def confirma_salir(self):
+    def confirm_exit(self):
         self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})

@@ -22,12 +22,13 @@ class Router:
         
         for pattern, factory in self.routes.items():
             if troute.match(pattern):
-                try:
-                    return factory(self.page, troute.params)
-                except Exception as e:
-                    # Log the error, maybe display a generic error page
-                    print(f"Error instantiating page for route {route}: {e}")
-                    # return ErrorPage()
-                    return None
+                return factory(self.page, troute.params)
+                # try:
+                #     return factory(self.page, troute.params)
+                # except Exception as e:
+                #     # Log the error, maybe display a generic error page
+                #     print(f"Error instantiating page for route {route}: {e}")
+                #     # return ErrorPage()
+                #     return None
 
         return NotFoundPage() 

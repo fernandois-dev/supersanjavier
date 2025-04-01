@@ -12,10 +12,11 @@ class GenericPage(ft.Column):
         self.spacing = 0
         self.params = params
         self._model = _model
-        self.table = NotDataTable()
-        self.table.on_long_press = self.display_form
-        self.table.on_row_selected = self.handle_on_select_row
-        self.table.on_click_column = self.set_dict_order
+        self.table = NotDataTable(
+            handle_on_long_press=self.display_form,
+            on_row_selected=self.handle_on_select_row,
+            handle_on_chk_header_click=self.set_dict_order, 
+            )
         self.page = page
         self.search_active = False
         self.items_selected = 0
