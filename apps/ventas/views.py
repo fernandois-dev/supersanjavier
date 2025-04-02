@@ -20,22 +20,33 @@ def caja_form(page: ft.Page, params: dict):
     return view
 
 def venta_list(page: ft.Page, params: dict):
-    view = GenericPage(page=page, _model=Venta, params=params)
+    conditions = Conditions(
+        fields_excluded=["state"],
+    )
+    view = GenericPage(page=page, _model=Venta, params=params, conditions=conditions)
     view.build_page()
     return view
 
 def venta_form(page: ft.Page, params: dict):
     conditions = Conditions(
-        overrides_input_type={
-                "usuario": SearchField
-            },
+        # overrides_input_type={
+        #         "usuario": SearchField
+        #     },
         fields_excluded=["state"],
         related_objects={"detalleventa_set": {
             'fields_excluded': ["id","venta"],
             'fields_order':["cantidad", "producto", "precio", "total"],
             'fields_calculations':{
-                "precio": { "depends": ["producto"], "calculation": lambda obj: obj.producto.precio_venta if obj.producto_id else 0},
-                "total": { "depends": ["cantidad", "precio"], "calculation": lambda obj: obj.cantidad * obj.precio if obj.cantidad and obj.precio else 0,}
+                "precio": { 
+                    "depends": ["producto"], 
+                    "calculation": lambda obj: obj.producto.precio_venta if obj.producto_id else 0},
+                "total": { 
+                    "depends": ["cantidad", "precio"], 
+                    "calculation": lambda obj: obj.cantidad * obj.precio if obj.cantidad and obj.precio else 0,},
+                "__parent__total": {
+                    "depends": ["total"],  # Depende de los hijos
+                    "calculation": lambda parent, children: sum(child.total for child in children if child.total)
+                }
             },
             'overrides_input_type':{
                 "producto": SearchField

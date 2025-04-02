@@ -15,6 +15,7 @@ class Usuario(models.Model):
     class Meta:
         verbose_name = "Usuario"
         verbose_name_plural = "Usuarios"
+        ordering = ["nombre"]
 
     def delete(self):
         # Custom logic to manage relations before delete

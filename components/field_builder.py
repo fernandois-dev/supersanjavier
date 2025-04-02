@@ -7,11 +7,13 @@ from pages.conditions import Conditions
 
 
 class FieldFactory(ft.Container):
-    def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, conditions = Conditions(), diplay_mode = DisplayMode.EDIT, page: ft.Page= None, *args, **kwargs):
+    def __init__(self, obj, get_parent=None, layout_mode=LayoutMode.VERTICAL, conditions = Conditions(), diplay_mode = DisplayMode.EDIT, 
+                 get_children=None, page: ft.Page= None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = None
         self.init_values = {}
         self.list_fields = []
+        self.get_parent = get_parent
         self.page = page
         self.conditions = conditions
         self.is_dirty = False
@@ -19,6 +21,7 @@ class FieldFactory(ft.Container):
         self.original_obj = copy.deepcopy(obj)
         self.layout_mode = layout_mode
         self.display_mode=diplay_mode
+        self.get_children = get_children
         self.expand = 1
         
         self.create_fields()
@@ -58,33 +61,41 @@ class FieldFactory(ft.Container):
         else:
             self.content = ft.Row(controls=self.list_fields, spacing=2)
     
-        # self.content = [ft.Column(controls=self.list_fields)  
-        #                  if self.orientation == "vertical" 
-        #                  else ft.Row(controls=self.list_fields, wrap=True, spacing=10, run_spacing=10)]
-        
     def get_fields(self):
         return self.list_fields
     
     def create_on_change_handler(self, col):
         def on_change(e, value = None):
-            def update_depentents(obj, col_name):
-                for field, depend_calculation in self.conditions.fields_calculations.items():
+            def update_depentents(obj, col_name, children=None):
+                for field_name, depend_calculation in self.conditions.fields_calculations.items():
                     depends = depend_calculation.get("depends", [])
                     calculation = depend_calculation.get("calculation", None)
                     if col_name in depends:  # Evitar recalcular el mismo campo
-                        new_value = calculation(obj)
-                        setattr(obj, field, new_value)
+                        if"__parent__" in field_name:
+                            form_parent, obj_parent = self.get_parent()
+                            aux_field_name = field_name.replace("__parent__", "")
+                            new_value = calculation(form_parent.obj, children)
+                            setattr(obj_parent, aux_field_name, new_value)
+                            form_parent.check_is_dirty(recheck=True)
+                            # Actualizar el control correspondiente en el formulario del padre
+                            control = form_parent.get_filed_by_name(aux_field_name)
+                            control.set_value(new_value)
+                            control.update()
+                        else:
+                            new_value = calculation(obj)
+                            setattr(obj, field_name, new_value)
+                            # Actualizar el control correspondiente
+                            for control in self.content.controls:
+                                if control.name == field_name:
+                                    control.set_value(new_value)
+                                    control.update()
                         
-                        # Actualizar el control correspondiente
-                        for control in self.content.controls:
-                            if control.name == field:
-                                control.set_value(new_value)
-                                control.update()
+                        update_depentents(obj, col_name=field_name, children=children)
                         
-                        update_depentents(obj, field)
-             # Actualizar el valor del campo
+             
             setattr(self.obj, col.name, e.control.value if e else value)
-            update_depentents(self.obj, col.name) # Actualizar los campos dependientes
+            children = [child.obj for child in self.get_children()] if self.get_children else []
+            update_depentents(self.obj, col.name, children=children) # Actualizar los campos dependientes
             self.is_dirty = not self.compare_objects(self.obj, self.original_obj)
              
         return on_change
@@ -97,15 +108,22 @@ class FieldFactory(ft.Container):
                 return False
         return True
     
-    def check_is_dirty(self):
+    def check_is_dirty(self, recheck=False):
+        if recheck:
+            self.is_dirty = not self.compare_objects(self.obj, self.original_obj)
         return self.is_dirty
     
     def check_is_horizontal(self):
         return self.layout_mode == LayoutMode.HORIZONTAL
     
+    def set_original_obj(self, obj):
+        self.original_obj = copy.deepcopy(obj)
+        self.is_dirty = False
+    
 
 class FieldBuilder(ft.Column):
-    def __init__(self, obj, layout_mode=LayoutMode.VERTICAL, diplay_mode=DisplayMode.EDIT,  conditions = Conditions(),page: ft.Page= None, *args, **kwargs):
+    def __init__(self, obj, get_parent=None, layout_mode=LayoutMode.VERTICAL, diplay_mode=DisplayMode.EDIT,  conditions = Conditions(),
+                 page: ft.Page= None, get_children=None,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.controls = []
         self.layout_mode = layout_mode
@@ -114,18 +132,25 @@ class FieldBuilder(ft.Column):
         self.spacing=0
         self.page = page
         self.obj = obj
-        self.form_fields = FieldFactory(obj=self.obj, layout_mode=layout_mode, diplay_mode=diplay_mode, conditions = self.conditions, page=self.page)
-        
+        self.form_fields = FieldFactory(obj=self.obj, layout_mode=layout_mode, diplay_mode=diplay_mode, get_children=get_children,
+                                        conditions = self.conditions, page=self.page, get_parent=get_parent, *args, **kwargs)
         self.controls = [self.form_fields]
         
     def create_button(self, *args, **kwargs):
         self.form_buttons.create_button(*args, **kwargs)
     
-    def check_is_dirty(self):
-        return self.form_fields.check_is_dirty()
+    def check_is_dirty(self, recheck=False):
+        return self.form_fields.check_is_dirty(recheck=recheck)
     
     def check_is_new(self):
         return self.obj._state.adding
+    
+    def get_filed_by_name(self, field_name):
+        for field in self.form_fields.get_fields():
+            if field.name == field_name:
+                return field
+        return None
+            
     
     def set_errors(self, errors):
         is_horizontal = self.form_fields.check_is_horizontal()
@@ -160,25 +185,10 @@ class FieldBuilder(ft.Column):
             try:
                 self.obj.full_clean()
                 self.obj.save()
+                self.form_fields.set_original_obj(self.obj)
                 return True
             except ValidationError as ex:
                 self.set_errors(ex)
                 return False
         return True
     
-    
-    # def get_values(self):
-    #     ret = {}
-    #     for field in self.form_fields.get_fields():
-    #         if field.name == "id":
-    #             if f"{field.name}".isdigit():
-    #                 ret[field.name] = field.value
-    #         else:
-    #             if self.form_fields.init_values[field.name] != field.value:
-    #                 ret[field.name] = field.value
-    #     return ret
-            
-   
-    
-        
-

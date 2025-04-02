@@ -74,6 +74,7 @@ class CustomIntegerField(ft.TextField):
         self.label = field.verbose_name
         self.text_align = ft.TextAlign.RIGHT
         self.on_submit = self.handle_submit
+        self.read_only = field.read_only
 
     def handle_submit(self, e):
         # Llamar al callback original si existe
@@ -119,6 +120,7 @@ class CustomMoneyField(ft.TextField):
         self.text_align = ft.TextAlign.RIGHT  # Alinear texto a la derecha
         self.on_focus = self.handle_focus
         self.on_blur = self.handle_blur
+        self.read_only = field.read_only
         # self.content_padding = ft.padding.only(top=-4, right=10, bottom=0, left=10)
         # # self.text_vertical_align = ft.VerticalAlignment.START
         # self.bgcolor = "green"
@@ -186,6 +188,39 @@ class CustomMoneyField(ft.TextField):
             self.custom_on_change(None, value=self.numeric_value)
 
 
+class CustomDateTimeView(ft.Container):
+    def __init__(self, value=None, *args, **kwargs):
+        """
+        Visualiza una fecha y hora en el formato DD/MM/YYYY HH:MM:SS.
+        
+        Args:
+            value (datetime.datetime): El valor de la fecha y hora a mostrar.
+        """
+        super().__init__(*args, **kwargs)
+        self.value = value
+        self.content = ft.Row(
+            controls=[
+                ft.Text(self.format_datetime(self.value))
+            ],
+            alignment=ft.MainAxisAlignment.END,
+        )
+        self.padding = ft.padding.only(right=10)
+
+    def format_datetime(self, value):
+        """
+        Formatea un objeto datetime en el formato DD/MM/YYYY HH:MM:SS.
+        
+        Args:
+            value (datetime.datetime): El valor de la fecha y hora a formatear.
+        
+        Returns:
+            str: La fecha y hora formateada como cadena.
+        """
+        if value is None:
+            return ""
+        return value.strftime("%d/%m/%Y %H:%M:%S")
+
+
 class CustomMoneyView(ft.Container):
     def __init__(self, value, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -236,6 +271,7 @@ class CustomTextField(ft.TextField):
         self.width = width
         self.value = value
         self.label = field.verbose_name
+        self.read_only = field.read_only
         # self.height = STYLE_DEFAULT["height"]
 
     
@@ -263,8 +299,8 @@ class CustomDateTimeField(ft.Column):
         self.hora = None if not value else value.strftime("%H:%M")
         self.txt_fecha = ft.TextField(label=field.verbose_name, value=self.fecha, width=160, read_only=True)
         self.txt_hora = ft.TextField(label="Hora", value=self.hora, width=80, read_only=True)
-        self.date_picker = ft.DatePicker(on_change=self.set_date)
-        self.time_picker = ft.TimePicker(on_change=self.set_time)
+        self.date_picker = ft.DatePicker(on_change=self.set_date, disabled=field.read_only)
+        self.time_picker = ft.TimePicker(on_change=self.set_time, disabled=field.read_only)
         self.txt_error = ft.Container(content= ft.Text(self.helper_text, style=self.helper_style, size=11), 
                                       margin=ft.margin.only(left=10), 
                                       visible=True if self.helper_text else False )
@@ -373,6 +409,7 @@ class CustomCheckbox(ft.Checkbox):
         self.label = field.verbose_name
         self.on_change = on_change
         self.value = value
+        self.disabled = field.read_only
     
     
 class CustomDropdown(ft.DropdownM2):
@@ -387,6 +424,7 @@ class CustomDropdown(ft.DropdownM2):
         self.options=[ft.dropdown.Option("", text=" ", data=None)] + [ ft.dropdown.Option(str(opt.id), text=str(opt), data=opt) for opt in field.related_model.objects.all()]
         self.label = field.verbose_name
         self.hover_color = "red"
+        self.disabled = field.read_only
         # self.bgcolor = "blue"
         self.fill_color = ft.Colors.TRANSPARENT
         # self.focused_bgcolor = ft.Colors.BLUE
@@ -435,7 +473,8 @@ class SearchField(ft.Container):
             on_change=self.update_suggestions,
             expand=True,
             label=self.label,
-            value=self.value
+            value=self.value,
+            read_only=field.read_only
         )
         self.modal_text_field = ft.TextField(
             shift_enter=True,
@@ -443,6 +482,7 @@ class SearchField(ft.Container):
             on_change=self.update_modal_suggestions,
             width=self.width,
             autofocus=True,
+            read_only=field.read_only
         )
         self.btn_search = CustomIconButton(icon=ft.Icons.SEARCH, on_click=self.hundle_submit_btn)
         
@@ -547,7 +587,8 @@ class SearchField(ft.Container):
         
     def hundle_submit_btn(self, e):
         self.page.open(self.suggestions_modal)  # Abrir el modal con sugerencias
-        self.modal_text_field.value = e.control.value
+        self.modal_text_field.value = self.text_field.value
+        self.modal_text_field.update()
         
     def handle_submit(self, e):
         if self.text_field.bgcolor == ft.Colors.ERROR_CONTAINER:
@@ -783,6 +824,7 @@ def get_view_by_type(input_type: str, **kwargs):
             "CustomMoneyField": CustomMoneyView,
             "CustomIntegerField": CustomIntegerView,
             "CustomBooleanField": CustomBooleanView,
+            "CustomDateTimeField": CustomDateTimeView,
             }
     if input_type in list_inputs:
         filtered_kwargs = filter_kwargs(list_inputs[input_type], kwargs)

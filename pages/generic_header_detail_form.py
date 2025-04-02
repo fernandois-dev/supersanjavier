@@ -57,7 +57,7 @@ class GenericHeaderDetailForm(ft.Container):
                 # Guardar los objetos relacionados (hijos)
                 for related_table in self.related_tables:
                     related_table.parent_obj = self.obj  # Asociar el objeto padre
-                    is_save_correctly = related_table.save()
+                    is_save_correctly = related_table.save(parent_obj=self.obj, parent_field_name=self.obj._meta.model_name)
                     if not is_save_correctly:
                         raise Exception("Error al guardar los objetos relacionados.")
     
@@ -69,16 +69,6 @@ class GenericHeaderDetailForm(ft.Container):
             # Manejar errores y mostrar un mensaje al usuario
             DlgAlert(page=self.page, title=f"Error al guardar: {str(e)}")
         
-    # def handle_btn_save(self):
-    #     is_save_correctly = self.form.save()
-    #     if is_save_correctly:
-    #         for related_table in self.related_tables:
-    #             is_save_correctly = related_table.save(parent_obj=self.obj, parent_field_name=self.obj._meta.model_name)
-    #             if not is_save_correctly:
-    #                 break
-    #         DlgAlert(page=self.page, title="Registo guardado correctamente")
-    #         # self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
-    
     def build_page(self):
         if '_obj' in self.params:
             self.obj = self.params['_obj']
@@ -88,9 +78,7 @@ class GenericHeaderDetailForm(ft.Container):
         # obj = self.obj if self.obj else self._model()
         
         self.form: FieldBuilder = FieldBuilder(self.obj, layout_mode=LayoutMode.HORIZONTAL_WRAP, conditions = self.conditions, page=self.page)
-        # self.form.create_fields()
-        # self.form.update_controls()
-        
+    
         related_objects = self.get_related_objects(self.obj)
         
         # Crear tablas para objetos relacionados
@@ -99,7 +87,7 @@ class GenericHeaderDetailForm(ft.Container):
             ro_conditions = Conditions()
             ro_conditions.init_from_dict(self.conditions.related_objects.get(related_name, {}))
             related_table = NotDataTable(is_chk_column_enabled=False, is_editable=True, conditions=ro_conditions, 
-                                         page=self.page)
+                                         page=self.page, get_parent=self.get_parent)
             related_table.set_model(related_queryset.model)
             related_table.set_data(related_queryset)
             related_table.create_table()
@@ -112,11 +100,13 @@ class GenericHeaderDetailForm(ft.Container):
             ft.Divider(),
             *self.related_tables,
             ft.Divider(),
-            ft.Text("Resumen")
         ])
         
         self.content= principal_column
         # self.update()
+        
+    def get_parent(self):
+        return self.form, self.obj
     
     def get_related_objects(self, obj):
         related_objects = {}
@@ -131,14 +121,6 @@ class GenericHeaderDetailForm(ft.Container):
                 related_objects[related_name] = relation.related_model.objects.none()   # Devolver una lista vacía para cada relación
         return related_objects
     
-    # def btn_aceptar(self):
-        
-    #     is_save_correctly = self.form.save()
-    #     if is_save_correctly:
-    #         DlgAlert(page=self.page, title="Registo guardado correctamente")
-    #         self.page.custom_go(self.params["origin"], self.params["returns_params"] if "returns_params" in self.params else {})
-     
-        
     def handle_btn_exit(self):
         is_dirty = self.form.check_is_dirty()
         if not is_dirty:

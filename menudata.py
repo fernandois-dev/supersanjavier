@@ -64,24 +64,11 @@ class MenuData:
                 ],
             ),
             ControlGroup(
-                name="ventas",
+                name="ventas/listado",
                 label="Ventas",
                 icon=ft.icons.RECEIPT_LONG_OUTLINED,
                 selected_icon=ft.icons.RECEIPT_LONG,
-                children=[
-                    ControlGroup(
-                        name="ventas/listado",
-                        label="Listado de Ventas",
-                        icon=ft.icons.VIEW_LIST_OUTLINED,
-                        selected_icon=ft.icons.VIEW_LIST,
-                    ),
-                    ControlGroup(
-                        name="ventas/detalle",
-                        label="Detalle de Ventas",
-                        icon=ft.icons.INFO_OUTLINED,
-                        selected_icon=ft.Icons.INFO,
-                    ),
-                ],
+                
             ),
         ]
 

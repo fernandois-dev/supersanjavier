@@ -90,9 +90,10 @@ class CustomBooleanField(models.BooleanField):
 class CustomForeignKey(models.ForeignKey):
     description = "ForeignKey"
 
-    def __init__(self, *args, hidden=False, is_sortable = False, **kwargs):
+    def __init__(self, *args, hidden=False, is_sortable = False, read_only = False, **kwargs):
         self.hidden = hidden
         self.is_sortable = is_sortable
         self.aligment = "left"
+        self.read_only = read_only
         
         super().__init__(*args, **kwargs)

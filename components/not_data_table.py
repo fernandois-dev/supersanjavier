@@ -1,9 +1,9 @@
 import flet as ft
-import copy
+from typing import Dict, List, Optional, Callable, Any
 from components.custom_dialogs import DlgConfirm
 from components.field_builder import FieldBuilder
 from pages.conditions import Conditions
-from components.custom_input import DisplayMode, LayoutMode, get_input_by_type
+from components.custom_input import DisplayMode, LayoutMode
 
 class NotDataTableHeader(ft.Container):
     def __init__(self, data, model, is_chk_column_enabled = True, is_editable = False, handle_all_row_selected=None, on_click_column=None, conditions=Conditions(), *args, **kwargs):
@@ -112,19 +112,75 @@ class NotDataTableHeader(ft.Container):
             if self.on_click_column:
                 self.on_click_column(self._dict)
                 
-    def manage_chk_header(self, len_list_rows_selected, len_rows):
-        if(len_list_rows_selected == len_rows):
-                self.chk_column.value = True
-        elif(len_list_rows_selected == 0):
+    def clean_selection(self):
+        self.chk_column.value = False
+        self.chk_column.update()
+                
+    def _get_header_alignment(self, col: Any) -> ft.MainAxisAlignment:
+        """
+        Determines the alignment for a column header.
+
+        Args:
+            col (Any): The column to align.
+
+        Returns:
+            ft.MainAxisAlignment: The alignment for the column header.
+        """
+        if col.aligment == "center":
+            return ft.MainAxisAlignment.CENTER
+        elif col.aligment == "right":
+            return ft.MainAxisAlignment.END
+        return ft.MainAxisAlignment.START
+
+    def _on_hover(self, e: ft.ControlEvent, col_name: str) -> None:
+        """
+        Handles hover events on column headers.
+
+        Args:
+            e (ft.ControlEvent): The hover event.
+            col_name (str): The name of the column being hovered.
+        """
+        e.control.bgcolor = ft.Colors.with_opacity(0.1, ft.Colors.SECONDARY) if e.data == "true" else self.bg_color_primary
+        e.control.update()
+
+    def _on_click(self, e: ft.ControlEvent, col_name: str) -> None:
+        """
+        Handles click events on column headers to toggle sorting.
+
+        Args:
+            e (ft.ControlEvent): The click event.
+            col_name (str): The name of the column being clicked.
+        """
+        if col_name in self._dict:
+            self._dict[col_name] = "desc" if self._dict[col_name] == "asc" else "asc"
+        else:
+            self._dict = {col_name: "desc"}
+        self.build_header()
+        self.update()
+        if self.on_click_column:
+            self.on_click_column(self._dict)
+
+    def manage_chk_header(self, len_list_rows_selected: int, len_rows: int) -> None:
+        """
+        Updates the state of the header checkbox based on the number of selected rows.
+
+        Args:
+            len_list_rows_selected (int): The number of selected rows.
+            len_rows (int): The total number of rows.
+        """
+        if len_list_rows_selected == len_rows:
+            self.chk_column.value = True
+        elif len_list_rows_selected == 0:
             self.chk_column.value = False
         else:
             self.chk_column.value = None
         self.chk_column.update()
+        self.content.controls[0].update()
 
               
 class NotDataRowTable(ft.Container):
     def __init__(self, obj, idx, confirm_delete_row=None, is_editable = False, conditions={}, is_chk_column_enabled=True, handle_on_long_press=None,
-                 handle_chk_row_selected=None, *args, **kwargs):
+                 handle_chk_row_selected=None, get_parent=None, get_children=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.obj = obj
         self.idx = idx
@@ -143,7 +199,7 @@ class NotDataRowTable(ft.Container):
         self.on_long_press= None if is_editable else lambda e: self.handle_on_long_press(obj)
         self.on_hover = None if is_editable else lambda e: self.handle_on_hover(e)
         
-        self.chk_column = ft.Checkbox(value= False, width=40, height=40, on_change=lambda e: self.handle_chk_row_selected(e), data=obj)
+        self.chk_column = ft.Checkbox(value= False, width=40, height=40, on_change=lambda e: self.handle_on_change_chk_column(e), data=obj)
         self.btn_remove_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.REMOVE, size=28),]),
                                            width=40, height=30,
                                            style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.TERTIARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
@@ -156,12 +212,24 @@ class NotDataRowTable(ft.Container):
             self.controls.append(ft.Container(content=self.btn_remove_row, margin=ft.margin.symmetric(horizontal=0, vertical=0)))
             
         diplay_mode=DisplayMode.EDIT if self.is_editable else DisplayMode.VIEW
-        self.form = FieldBuilder(obj=obj, layout_mode=LayoutMode.HORIZONTAL, diplay_mode=diplay_mode, conditions=self.conditions, page=self.page)
+        self.form = FieldBuilder(obj=obj, layout_mode=LayoutMode.HORIZONTAL, diplay_mode=diplay_mode, get_children=get_children,
+                                 conditions=self.conditions, page=self.page, get_parent=get_parent)
         self.controls.append(self.form)
         self.content= ft.Row(controls=self.controls, vertical_alignment=ft.VerticalAlignment.CENTER, spacing=0)
+     
+    def handle_on_change_chk_column(self, e):
+        if e.control.value == True:
+            self.is_selected = True
+        else:
+            self.is_selected = False
+        self.handle_chk_row_selected(e)
         
     def check_is_selected(self):
-        return self.chk_column.value if self.chk_column else False
+        return self.is_selected
+    
+    def clean_selection(self):
+        self.chk_column.value = False
+        self.chk_column.update()
     
     def handle_on_hover(self, e):
         self.bgcolor =  ft.Colors.with_opacity(0.8, ft.Colors.SECONDARY_CONTAINER) if e.data == "true" else ft.Colors.with_opacity(0.1 if self.idx%2 == 0 else 0.4  , ft.Colors.SECONDARY_CONTAINER)
@@ -235,9 +303,6 @@ class NotDataRowTable(ft.Container):
         self.is_selected = True
         if self.confirm_delete_row:
             self.confirm_delete_row()
-            
-    def check_is_selected(self):
-        return self.is_selected
     
     def set_is_selected(self, value):
         self.is_selected = value
@@ -265,88 +330,187 @@ class NotDataRowTable(ft.Container):
 
 
 class NotDataTable(ft.Column):
-    def __init__(self, is_chk_column_enabled = True, is_editable = False, handle_on_long_press=None, handle_on_chk_row_click=None, on_row_selected=None,
-                 handle_on_chk_header_click=None, conditions=Conditions(), page:ft.Page=None, *args, **kwargs):
+    """
+    A generic data table component for displaying, editing, and managing rows of data.
+    """
+    def __init__(
+        self,
+        is_chk_column_enabled: bool = True,
+        is_editable: bool = False,
+        handle_on_long_press: Optional[Callable[[Any], None]] = None,
+        handle_on_chk_row_click: Optional[Callable[[ft.ControlEvent], None]] = None,
+        on_row_selected: Optional[Callable[[List[Any]], None]] = None,
+        on_click_column: Optional[Callable[[ft.ControlEvent], None]] = None,
+        conditions: Conditions = Conditions(),
+        page: Optional[ft.Page] = None,
+        get_parent: Optional[Callable[[], Any]] = None,
+        *args,
+        **kwargs,
+    ):
+        """
+        Initializes the NotDataTable component.
+
+        Args:
+            is_chk_column_enabled (bool): Whether the checkbox column is enabled.
+            is_editable (bool): Whether the table is editable.
+            handle_on_long_press (Optional[Callable[[Any], None]]): Callback for long press events on rows.
+            handle_on_chk_row_click (Optional[Callable[[ft.ControlEvent], None]]): Callback for checkbox row clicks.
+            on_row_selected (Optional[Callable[[List[Any]], None]]): Callback for row selection events.
+            handle_on_chk_header_click (Optional[Callable[[ft.ControlEvent], None]]): Callback for header checkbox clicks.
+            conditions (Conditions): Conditions for filtering and displaying data.
+            page (Optional[ft.Page]): The parent page.
+            get_parent (Optional[Callable[[], Any]]): Function to get the parent object.
+        """
         super().__init__(*args, **kwargs)
-        self.expand = True
-        self.header = None
-        self.page=page
-        self.rows = []
-        self.spacing=0
-        self._data = None
-        self._model = None
-        self.is_chk_column_enabled = is_chk_column_enabled
-        self.is_editable = is_editable
-        self.is_being_edited = False
-        self.on_row_selected = on_row_selected
-        self.handle_on_long_press = handle_on_long_press
-        self.handle_on_chk_row_click = handle_on_chk_row_click
-        self.handle_on_chk_header_click = handle_on_chk_header_click
-        self.on_click_column = None
+        super().__init__(*args, **kwargs)
+        self.expand: bool = True
+        self.header: Optional[NotDataTableHeader] = None
+        self.page: Optional[ft.Page] = page
+        self.rows: List[NotDataRowTable] = []
+        self.spacing: int = 0
+        self._data: Optional[List[Any]] = None
+        self._model: Optional[Any] = None
+        self.is_chk_column_enabled: bool = is_chk_column_enabled
+        self.is_editable: bool = is_editable
+        self.is_being_edited: bool = False
+        self.on_row_selected: Optional[Callable[[List[Any]], None]] = on_row_selected
+        self.handle_on_long_press: Optional[Callable[[Any], None]] = handle_on_long_press
+        self.handle_on_chk_row_click: Optional[Callable[[ft.ControlEvent], None]] = handle_on_chk_row_click
+        self.on_click_column: Optional[Callable[[Dict[str, str]], None]] = on_click_column
+        self.get_parent: Optional[Callable[[], Any]] = get_parent
+        self.conditions: Conditions = conditions
+
+        # Components
+        self.dict_order: Dict[str, str] = {}
+        self.chk_column: Optional[ft.Checkbox] = None
+        self.component_buttons: ft.Container = ft.Container()
+        self.component_header: ft.Column = ft.Column(controls=[], spacing=0)
+        self.component_body: ft.Column = ft.Column(controls=[], spacing=0)
+        self.component_footer: ft.Column = ft.Column(controls=[], spacing=0)
+        self.controls: List[ft.Control] = [
+            self.component_buttons,
+            self.component_header,
+            self.component_body,
+            self.component_footer,
+        ]
+
+        # Buttons for adding and removing rows
+        self.btn_add_row: ft.TextButton = self._create_add_row_button()
+        self.btn_remove_row: ft.TextButton = self._create_remove_row_button()
+       
+    def _create_add_row_button(self) -> ft.TextButton:
+        """
+        Creates the button for adding new rows.
+
+        Returns:
+            ft.TextButton: The add row button.
+        """
+        return ft.TextButton(
+            content=ft.Row([ft.Icon(name=ft.Icons.ADD, size=28)]),
+            width=40,
+            height=40,
+            style=ft.ButtonStyle(
+                padding=ft.padding.all(5),
+                bgcolor=ft.Colors.PRIMARY_CONTAINER,
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+            on_click=lambda e: self.add_row(),
+        )
         
-        self.conditions = conditions
+    def clean_selection(self):
+        for row in self.component_body.controls:
+            row.clean_selection()
+            
+        self.header.clean_selection()
+         
+    def _create_remove_row_button(self) -> ft.TextButton:
+        """
+        Creates the button for removing selected rows.
+
+        Returns:
+            ft.TextButton: The remove row button.
+        """
+        return ft.TextButton(
+            content=ft.Row([ft.Icon(name=ft.Icons.REMOVE, size=28)]),
+            width=40,
+            height=40,
+            style=ft.ButtonStyle(
+                padding=ft.padding.all(5),
+                bgcolor=ft.Colors.TERTIARY_CONTAINER,
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+            on_click=lambda e: self.delete_selected_rows(e),
+        ) 
         
-        self.dict_order = {}
-        
-        self.chk_column = None
-        
-        self.component_buttons = ft.Container()
-        self.component_header = ft.Column(controls=[], spacing=0)
-        self.component_body = ft.Column(controls=[], spacing=0)
-        self.component_footer = ft.Column(controls=[], spacing=0)     
-        self.controls = [self.component_buttons, self.component_header, self.component_body, self.component_footer]
-        
-        self.btn_add_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.ADD, size=28),]),
-                    width=40,height=40,
-                    style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.PRIMARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
-                    on_click=lambda e: self.add_row()
-                )
-        self.btn_remove_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.REMOVE, size=28),]),
-                    width=40,height=40,
-                    style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.TERTIARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
-                    on_click=lambda e: self.delete_selected_rows(e)
-                )
-        
-        
-    def set_data(self, data):
+    def set_data(self, data: List[Any]) -> None:
+        """
+        Sets the data for the table.
+
+        Args:
+            data (List[Any]): The data to display in the table.
+        """
         self._data = data
-        
-    def set_model(self, model):
+
+    def set_model(self, model: Any) -> None:
+        """
+        Sets the model for the table.
+
+        Args:
+            model (Any): The model to use for the table.
+        """
         self._model = model
+
         
-    def build_header(self):
+    def build_header(self) -> None:
+        """
+        Builds the table header.
+        """
         self.header = NotDataTableHeader(
-                        is_chk_column_enabled=self.is_chk_column_enabled, 
-                        data=self._data, 
-                        model=self._model, 
-                        is_editable=self.is_editable, 
-                        conditions=self.conditions,
-                        handle_all_row_selected = self.handle_on_click_chk_row,
-                        on_click_column=self.on_click_column)
+            is_chk_column_enabled=self.is_chk_column_enabled,
+            data=self._data,
+            model=self._model,
+            is_editable=self.is_editable,
+            conditions=self.conditions,
+            handle_all_row_selected=self.handle_on_click_chk_row,
+            on_click_column=self.on_click_column,
+        )
         self.header.build_header()
         self.component_header.controls = [self.header]
     
     def build_body(self):
-        self.rows = []
-        list_data_row = []
-        for idx, obj in enumerate(self._data):
-            # list_data_row.append(self.make_row(idx, obj))
-            list_data_row.append(NotDataRowTable(obj, idx, 
-                                                is_editable=self.is_editable, 
-                                                conditions=self.conditions, 
-                                                handle_on_long_press=self.handle_on_long_press, 
-                                                is_chk_column_enabled=self.is_chk_column_enabled,
-                                                handle_chk_row_selected=self.handle_chk_row_selected,
-                                                confirm_delete_row=self.confirm_delete_row,
-                                                ),
-                                                
-                                 )
-        self.component_body.controls=list_data_row
+        """
+        Builds the table body with rows of data.
+        """
+        list_data_row = [
+            NotDataRowTable(
+                obj=obj,
+                idx=idx,
+                is_editable=self.is_editable,
+                conditions=self.conditions,
+                handle_on_long_press=self.handle_on_long_press,
+                is_chk_column_enabled=self.is_chk_column_enabled,
+                handle_chk_row_selected=self.handle_chk_row_selected,
+                confirm_delete_row=self.confirm_delete_row,
+                get_children=self.get_children,
+                get_parent=self.get_parent,
+            ) for idx, obj in enumerate(self._data)
+        ]
+        self.component_body.controls=list_data_row    
+    
+    def build_footer(self):
+        """
+        Builds the table footer with the button btn_add_row.
+        """
         if self.is_editable:
-            self.component_footer.controls.append(ft.Container(content=self.btn_add_row, margin=ft.margin.symmetric(horizontal=0, vertical=5)))
-        else:
-            self.component_footer.controls = []
-        a = 0
+            self.component_footer.controls.append(
+                ft.Container(
+                    content=self.btn_add_row, 
+                    margin=ft.margin.symmetric(horizontal=0, vertical=5)
+                )
+            )   
+            
+    def get_children(self):
+        return [row.form for row in self.component_body.controls]
     
     def confirm_delete_row(self):
         self.component_body.controls = [row for row in self.component_body.controls if not row.check_is_selected()]
@@ -358,6 +522,10 @@ class NotDataTable(ft.Column):
     def create_table(self):
         self.build_header()
         self.build_body()
+        self.build_footer()
+        
+    def get_selectd_objects(self):
+        return [row.obj for row in self.component_body.controls if row.check_is_selected()]
     
     
     def handle_chk_row_selected(self, e):
@@ -371,9 +539,6 @@ class NotDataTable(ft.Column):
         
     def list_rows_selected(self):
         return [row.obj for row in self.component_body.controls if row.check_is_selected()]
-        # for row in self.component_body.controls:
-        #     if row.chk_column.value:
-        #         return True
         
     def handle_on_click_chk_row(self, e):
         if e.control.value == None:
@@ -388,119 +553,40 @@ class NotDataTable(ft.Column):
         if self.on_row_selected:
             self.on_row_selected(list_rows_selected)
         
-        # self.controls = [self.component_header, self.component_body]
-        # if self.is_editable:
-        #     self.switch_edit.value = False if self._data else True
-        #     self.controls.insert(0, ft.Container(content=ft.Row(controls=[self.switch_edit], 
-        #                                                         alignment=ft.MainAxisAlignment.END), 
-        #                                          margin=ft.margin.symmetric(horizontal=10, vertical=5)))
-        # self.update()
-            
-    # def make_row(self, idx, obj):
-    #     list_data_cell = []
-    #     original_obj = copy.deepcopy(obj)
-        
-    #     self.chk_column = ft.Checkbox(value= False, width=40, height=40, on_change=lambda e: handle_row_selected(e), data=obj)
-        
-    #     if self.is_chk_column_enabled: list_data_cell.append(self.chk_column)
-    #     if self.is_editable: 
-    #         btn_remove_row = ft.TextButton(content=ft.Row([ft.Icon(name=ft.Icons.REMOVE, size=28),]),
-    #                                        width=40, height=30,
-    #                                        style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.TERTIARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
-    #                                        on_click=lambda e, idx=idx: self.delete_row(e, idx))
-    #         list_data_cell.append(ft.Container(content=btn_remove_row, margin=ft.margin.symmetric(horizontal=0, vertical=0)))
-        
-    #     diplay_mode=DisplayMode.EDIT if self.is_editable else DisplayMode.VIEW
-    #     horizontal_form = FieldBuilder(obj=obj, layout_mode=LayoutMode.HORIZONTAL, diplay_mode=diplay_mode, conditions=self.conditions, page=self.page)
-    #     list_data_cell.append(horizontal_form)
-            
-    #     def handle_row_selected(e):
-    #         list_rows_selected = self.list_rows_selected()
-    #         self.header.manage_chk_header(len(list_rows_selected), len(self.rows))
-        
-    #         if self.on_row_selected:
-    #             self.on_row_selected(list_rows_selected)
-                
-    #         e.control.update()
-    #     long_press = None
-    #     if not self.is_editable:
-    #         long_press = lambda e: self.handle_long_press(obj)
-            
-    #     row_container = ft.Container(content= ft.Row(controls=list_data_cell, vertical_alignment=ft.VerticalAlignment.CENTER, spacing=0),
-    #         # height=44,
-    #         padding=ft.padding.only(top=2, bottom=0),
-    #         border = ft.border.only(bottom=ft.border.BorderSide(1, ft.Colors.with_opacity(0.2 , ft.Colors.ON_SURFACE_VARIANT))),
-    #         bgcolor= ft.Colors.with_opacity(0.0 if idx%2 == 0 else 0.3  , ft.Colors.SECONDARY_CONTAINER),
-    #         alignment=ft.alignment.center,
-    #         key=idx,
-    #         on_long_press=long_press,
-    #         data=horizontal_form,)
-    #     def on_hover(e):
-    #         row_container.bgcolor =  ft.Colors.with_opacity(0.8, ft.Colors.SECONDARY_CONTAINER) if e.data == "true" else ft.Colors.with_opacity(0.1 if e.control.key%2 == 0 else 0.4  , ft.Colors.SECONDARY_CONTAINER)
-    #         row_container.update()
-    #     if not self.is_editable:
-    #         row_container.on_hover = lambda e: on_hover(e)      
-        
-    #     return row_container
-    
-    # def list_rows_selected(self):
-    #     return [row.data["obj_original"] for row in self.component_body.controls if row.data["chk"].value]
-        
-    # def get_container_header (self, controls):
-    #     header_row = ft.Container(
-    #         content= ft.Row(controls=controls),
-    #         bgcolor=ft.Colors.with_opacity(1, ft.Colors.SECONDARY_CONTAINER),
-    #         height=45,
-    #     )
-    #     return header_row
-    
-    # def get_container_body (self, controls):
-    #     header_row = ft.Container(
-    #         content= ft.Row(controls=controls),
-    #         bgcolor=ft.Colors.with_opacity(1, ft.Colors.SECONDARY_CONTAINER),
-    #         height=40,
-    #     )
-    #     return header_row
-        
-    
-        
-    # def handle_long_press(self, obj):
-    #     if self.on_long_press:
-    #         self.on_long_press(obj)
-        
     def add_row(self):
+        """
+        Adds a new row to the table.
+        """
         idx = len(self.component_body.controls)
-        # new_row = self.make_row(idx, self._model())
-        new_row = NotDataRowTable(self._model(), idx, 
-                                                is_editable=self.is_editable, 
-                                                conditions=self.conditions, 
-                                                handle_on_long_press=self.handle_on_long_press, 
-                                                is_chk_column_enabled=self.is_chk_column_enabled,
-                                                handle_chk_row_selected=self.handle_chk_row_selected,
-                                                confirm_delete_row=self.confirm_delete_row
-                                                )
+        new_row = NotDataRowTable(
+            self._model(), 
+            idx, 
+            is_editable=self.is_editable, 
+            conditions=self.conditions, 
+            handle_on_long_press=self.handle_on_long_press, 
+            is_chk_column_enabled=self.is_chk_column_enabled,
+            handle_chk_row_selected=self.handle_chk_row_selected,
+            confirm_delete_row=self.confirm_delete_row,
+            get_children=self.get_children,
+            get_parent=self.get_parent
+        )
         self.component_body.controls.append(new_row)
         self.update_body()
     
     def save(self, **kwargs):
-        ret = True
-        for row in self.component_body.controls:
-            if not row.save(**kwargs):
-                ret = False
-        return ret
+        """
+        Saves all rows in the table.
+
+        Returns:
+            bool: True if all rows were saved successfully, False otherwise.
+        """
+        return all(row.save(**kwargs) for row in self.rows)
     
     def check_is_dirty(self):
-        for row in self.component_body.controls:
-            if row.check_is_dirty():
-                return True
-        return False
-    
-    # def on_changed_switch_edit(self, e):
-    #     self.build_header()
-    #     self.build_body()
-    #     # self.is_being_edited = e.control.value
-        
-    #     # self.create_table()
-        
-    #     self.update()
-            
+        """
+        Checks if any row in the table has unsaved changes.
+
+        Returns:
+            bool: True if there are unsaved changes, False otherwise.
+        """
+        return any(row.check_is_dirty() for row in self.rows)

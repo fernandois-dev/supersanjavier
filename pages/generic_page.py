@@ -1,58 +1,92 @@
+from typing import List, Dict, Optional, Any
 import flet as ft
 from components.custom_buttons import CustomButtonCupertino
 from components.not_data_table import NotDataTable
 from data.serach import buscar_modelo
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from components.custom_dialogs import DlgConfirm, DlgAlert
+from components.custom_dialogs import DlgConfirm
+from pages.conditions import Conditions
+from django.db.models import ProtectedError, RestrictedError
 
 class GenericPage(ft.Column):
-    def __init__(self, page: ft.Page, _model, params = {}):
+    """
+    Clase genérica para manejar páginas con tablas, paginación y acciones CRUD.
+    """
+    
+    def __init__(self, page: ft.Page, _model, params = {}, conditions = Conditions()):
+        """
+        Inicializa la página genérica.
+
+        Args:
+            page (ft.Page): Página principal de Flet.
+            _model (Any): Modelo de Django asociado a la tabla.
+            params (Optional[Dict]): Parámetros iniciales para la página.
+            conditions (Conditions): Condiciones para el despliegue de datos para la tabla y los filtros.
+        """
         super().__init__()
-        self.expand = True
-        self.spacing = 0
-        self.params = params
-        self._model = _model
-        self.table = NotDataTable(
-            handle_on_long_press=self.display_form,
-            on_row_selected=self.handle_on_select_row,
-            handle_on_chk_header_click=self.set_dict_order, 
-            )
-        self.page = page
-        self.search_active = False
-        self.items_selected = 0
-        self.titulo = self._model._meta.object_name
-        self.dict_order = {}
-        self.text_search = ""
-        self.text_order = ""
-        
-        self.component_pagination = None
-        self.current_page = 1  # Initialize current_page
-        self.items_per_page = 10  # Set the number of items per page
-        self.paginator = None
+        self.expand: bool = True
+        self.spacing: int = 0
+        self.params: Dict = params or {}
+        self._model: Any = _model
+        self.conditions: Conditions = conditions
+
+        # Componentes principales
+        self.table: NotDataTable = self._create_table()
+        self.page: ft.Page = page
+        self.search_active: bool = False
+        self.items_selected: int = 0
+        self.titulo: str = self._model._meta.object_name
+        self.dict_order: Dict[str, str] = {}
+        self.text_search: str = ""
+        self.text_order: str = ""
+
+        # Paginación
+        self.component_pagination: Optional[ft.Row] = None
+        self.current_page: int = 1
+        self.items_per_page: int = 10
+        self.paginator: Optional[Paginator] = None
         self.build_pagination()
-        
-        self.component_search_input = None
-        
-        self.component_search_cancel = None
+
+        # Componentes de búsqueda
+        self.component_search_input: Optional[ft.TextField] = None
+        self.component_search_cancel: Optional[ft.TextButton] = None
         self.build_search_cancel()
-        
-        self.component_search = None
-        
-        self.component_left_buttons = None
+        self.component_search: Optional[ft.Row] = None
+
+        # Botones y acciones
+        self.component_left_buttons: Optional[ft.Row] = None
         self.build_left_buttons()
-        
-        self.component_actions = None
+        self.component_actions: Optional[ft.Row] = None
         self.build_actions()
-        
+
+        # Construir búsqueda
         self.build_search_input()
         self.build_search()
+
+        # Menú de la tabla
+        self.menu_table: ft.Row = ft.Row(
+            height=40,
+            controls=[
+                self.component_left_buttons,
+                self.component_search,
+                self.component_pagination,
+            ],
+        )
         
-        self.menu_table = ft.Row(height=40, controls=[
-            self.component_left_buttons,
-            self.component_search,
-            self.component_pagination,
-        ])
-    
+    def _create_table(self) -> NotDataTable:
+        """
+        Crea y configura la tabla principal.
+
+        Returns:
+            NotDataTable: Tabla configurada.
+        """
+        return NotDataTable(
+            handle_on_long_press=self.display_form,
+            on_row_selected=self.handle_on_select_row,
+            on_click_column=self.set_dict_order,
+            conditions=self.conditions,
+        )
+        
     def build_page(self):
         if "text_order" in self.params:
             self.text_order = self.params["text_order"]
@@ -193,27 +227,41 @@ class GenericPage(ft.Column):
                 ft.Text(self.titulo , size=18, font_family="Roboto", weight=ft.FontWeight.W_400)
             ])
     
-    def build_pagination(self):
-        self.lbl_page_info = ft.Container(content=ft.Text("", color=ft.Colors.ON_SURFACE, size=13, font_family="Roboto Mono"), padding=ft.padding.symmetric(horizontal=6))
+    def build_pagination(self) -> None:
+        """
+        Construye los controles de paginación.
+        """
+        self.lbl_page_info = ft.Container(
+            content=ft.Text("", color=ft.Colors.ON_SURFACE, size=13, font_family="Roboto Mono"),
+            padding=ft.padding.symmetric(horizontal=6),
+        )
         self.btn_previous = ft.TextButton(
-                content=ft.Row([
-                    ft.Icon(name=ft.Icons.CHEVRON_LEFT, size=28),
-                ]),
-                width=40,
-                height=40,
-                style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.PRIMARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
-                on_click=lambda e: self.previous_page()
-            )
+            content=ft.Row([ft.Icon(name=ft.Icons.CHEVRON_LEFT, size=28)]),
+            width=40,
+            height=40,
+            style=ft.ButtonStyle(
+                padding=ft.padding.all(5),
+                bgcolor=ft.Colors.PRIMARY_CONTAINER,
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+            on_click=lambda e: self.previous_page(),
+        )
         self.btn_next = ft.TextButton(
-                content=ft.Row([
-                    ft.Icon(name=ft.Icons.CHEVRON_RIGHT, size=28),
-                ]),
-                width=40,height=40,
-                style=ft.ButtonStyle(padding=ft.padding.all(5), bgcolor=ft.Colors.PRIMARY_CONTAINER, shape=ft.RoundedRectangleBorder(radius=3)),
-                on_click=lambda e: self.next_page()
-            )
-        
-        self.component_pagination = ft.Row(expand=2 ,spacing=1, alignment=ft.MainAxisAlignment.END, controls=[
+            content=ft.Row([ft.Icon(name=ft.Icons.CHEVRON_RIGHT, size=28)]),
+            width=40,
+            height=40,
+            style=ft.ButtonStyle(
+                padding=ft.padding.all(5),
+                bgcolor=ft.Colors.PRIMARY_CONTAINER,
+                shape=ft.RoundedRectangleBorder(radius=3),
+            ),
+            on_click=lambda e: self.next_page(),
+        )
+        self.component_pagination = ft.Row(
+            expand=2,
+            spacing=1,
+            alignment=ft.MainAxisAlignment.END,
+            controls=[
                 self.lbl_page_info,
                 self.btn_previous,
                 self.btn_next,
@@ -221,9 +269,10 @@ class GenericPage(ft.Column):
                     icon=ft.Icons.REFRESH,
                     icon_size=20,
                     tooltip="Recargar Datos",
-                    on_click=lambda e: self.search()
-                )
-            ])
+                    on_click=lambda e: self.search(),
+                ),
+            ],
+        )
     
     def update_pagination_controls(self):
         if self.paginator is not None:
@@ -236,11 +285,6 @@ class GenericPage(ft.Column):
           self.lbl_page_info.content.value = f"{start_index}-{end_index}/{total_items}"
           self.btn_previous.disabled = self.current_page == 1
           self.btn_next.disabled = self.current_page == total_pages
-          
-        #   self.lbl_page_info.update()
-        #   self.btn_previous.update()
-        #   self.btn_next.update()
-          
           
 
     def next_page(self):
@@ -347,8 +391,6 @@ class GenericPage(ft.Column):
         
     def cancel_selection(self):
         self.table.clean_selection()
-        self.table.component_header.chk_column.value = False
-        self.table.component_header.chk_column.update()
         self.set_search_menu()
     
     def set_search_menu(self):
@@ -378,22 +420,27 @@ class GenericPage(ft.Column):
         DlgConfirm(page=self.page, title="Desea eliminar los registros?", fn_yes=self.handle_delete_yes)
     
     def handle_delete_yes(self):
-        try:
-            for row in self.table.rows:
-                if row[0].value:
-                    elemento = row[0].data
-                    relaciones = self.obtener_relaciones(elemento)
-                    
-                    if relaciones:
-                        self.dlg_msg = ft.AlertDialog(title=ft.Text(f"No se puede eliminar {str(elemento)}. Registros relacionados: {relaciones}"))
-                        self.page.open(self.dlg_msg)
-                    else:
-                        elemento.delete()
-            self.set_search_menu()
-            self.search()
-        except Exception as e:
-            self.dlg_msg = ft.AlertDialog(title=ft.Text(f"Error al eliminar los registros: {e}"))
-            self.page.open(self.dlg_msg)
+        """
+        Maneja la confirmación de eliminación de registros seleccionados.
+        """
+        for obj in self.table.get_selectd_objects():
+            try:
+                obj.delete()
+            except ProtectedError as e:
+                relaciones = self.obtener_relaciones(obj)
+                self.dlg_msg = ft.AlertDialog(
+                    title=ft.Text(f"No se puede eliminar {str(obj)}."),
+                    content=ft.Text(f"Registros relacionados: {relaciones}"),
+                )
+                self.page.open(self.dlg_msg)
+            except RestrictedError as e:
+                self.dlg_msg = ft.AlertDialog(
+                    title=ft.Text(f"Error al eliminar {str(obj)}."),
+                    content=ft.Text(f"Detalles del error: {str(e)}"),
+                )
+                self.page.open(self.dlg_msg)    
+        self.set_search_menu()
+        self.search()
             
     def obtener_relaciones(self, obj):
         """
@@ -424,23 +471,3 @@ class GenericPage(ft.Column):
         else:
             self.page.custom_go(f"{self.page.route}/form?origin={self.page.route}", params=params)
     
-    # def btn_aceptar(self):
-        
-    #     is_save_correctly = self.form.save()
-    #     if is_save_correctly:
-    #         self.dlg_msg = ft.AlertDialog(title=ft.Text("Registo guardado correctamente"),)
-    #         self.page.open(self.dlg_msg)
-    #         self.display_main()
-    #         self.update()
-    #         self.set_search_menu()
-    #         self.search()
-        
-    # def btn_cancelar(self):
-    #     # validar si se modificó
-    #     if self.form.chech_is_dirty():
-    #         self.page.open(self.dlg_alert)
-    #     else:
-    #         self.display_main()
-    #         self.update()
-    #         self.set_search_menu()
-        
