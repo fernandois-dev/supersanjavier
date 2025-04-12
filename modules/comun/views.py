@@ -1,5 +1,5 @@
 from pages.generic_page import GenericPage
-from apps.comun.models import Usuario
+from modules.comun.models import Usuario
 import flet as ft
 
 from pages.generic_page_form_standard import GenericPageFormStandar

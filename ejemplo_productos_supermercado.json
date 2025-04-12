@@ -1,0 +1,1056 @@
+{
+  "categorias": [
+    {
+      "nombre": "Lácteos",
+      "descripcion": "Productos lácteos como leche y yogur",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Aseo",
+      "descripcion": "Artículos de limpieza",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Bebidas",
+      "descripcion": "Bebidas alcohólicas y no alcohólicas",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Snacks",
+      "descripcion": "Galletas, papas fritas, etc.",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Panadería",
+      "descripcion": "Pan, pasteles y productos horneados",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Carnes",
+      "descripcion": "Productos cárnicos frescos o congelados",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Verduras",
+      "descripcion": "Verduras y hortalizas frescas",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Frutas",
+      "descripcion": "Frutas frescas",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Congelados",
+      "descripcion": "Alimentos congelados",
+      "porcentaje_iva": 19
+    },
+    {
+      "nombre": "Despensa",
+      "descripcion": "Productos secos y enlatados",
+      "porcentaje_iva": 19
+    }
+  ],
+  "productos": [
+    {
+      "codigo": "P0000",
+      "nombre": "Agua mineral",
+      "codigo_barras": "6914112243863",
+      "precio_compra": 1318.0,
+      "precio_venta": 1809.0,
+      "stock": 18,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0001",
+      "nombre": "Vino tinto",
+      "codigo_barras": "9786399336364",
+      "precio_compra": 4753.0,
+      "precio_venta": 6881.0,
+      "stock": 67,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0002",
+      "nombre": "Porotos",
+      "codigo_barras": "4896231696435",
+      "precio_compra": 3838.0,
+      "precio_venta": 5358.0,
+      "stock": 59,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0003",
+      "nombre": "Pera",
+      "codigo_barras": "5627312363842",
+      "precio_compra": 3209.0,
+      "precio_venta": 4526.0,
+      "stock": 38,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0004",
+      "nombre": "Pera",
+      "codigo_barras": "3490427600520",
+      "precio_compra": 4428.0,
+      "precio_venta": 5645.0,
+      "stock": 74,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0005",
+      "nombre": "Helado de vainilla",
+      "codigo_barras": "1982714222222",
+      "precio_compra": 3762.0,
+      "precio_venta": 4685.0,
+      "stock": 45,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0006",
+      "nombre": "Harina",
+      "codigo_barras": "7629671819037",
+      "precio_compra": 3996.0,
+      "precio_venta": 5616.0,
+      "stock": 0,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0007",
+      "nombre": "Aceite vegetal",
+      "codigo_barras": "7968305051130",
+      "precio_compra": 2872.0,
+      "precio_venta": 3595.0,
+      "stock": 99,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0008",
+      "nombre": "Helado de vainilla",
+      "codigo_barras": "4416463182584",
+      "precio_compra": 612.0,
+      "precio_venta": 760.0,
+      "stock": 0,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0009",
+      "nombre": "Shampoo",
+      "codigo_barras": "8367047855911",
+      "precio_compra": 1350.0,
+      "precio_venta": 1875.0,
+      "stock": 22,
+      "categoria_nombre": "Aseo",
+      "activo": true
+    },
+    {
+      "codigo": "P0010",
+      "nombre": "Chuleta de cerdo",
+      "codigo_barras": "0595152458552",
+      "precio_compra": 2261.0,
+      "precio_venta": 3024.0,
+      "stock": 90,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0011",
+      "nombre": "Mantequilla",
+      "codigo_barras": "0179426132470",
+      "precio_compra": 1484.0,
+      "precio_venta": 2018.0,
+      "stock": 66,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0012",
+      "nombre": "Chuleta de cerdo",
+      "codigo_barras": "4740663269395",
+      "precio_compra": 1921.0,
+      "precio_venta": 2781.0,
+      "stock": 26,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0013",
+      "nombre": "Azúcar",
+      "codigo_barras": "6781631347200",
+      "precio_compra": 4132.0,
+      "precio_venta": 5354.0,
+      "stock": 22,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0014",
+      "nombre": "Verduras mixtas congeladas",
+      "codigo_barras": "5982817650096",
+      "precio_compra": 3108.0,
+      "precio_venta": 4055.0,
+      "stock": 87,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0015",
+      "nombre": "Verduras mixtas congeladas",
+      "codigo_barras": "5984522555468",
+      "precio_compra": 1238.0,
+      "precio_venta": 1511.0,
+      "stock": 38,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0016",
+      "nombre": "Pera",
+      "codigo_barras": "4457832070514",
+      "precio_compra": 1194.0,
+      "precio_venta": 1722.0,
+      "stock": 10,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0017",
+      "nombre": "Toalla húmeda",
+      "codigo_barras": "4812008957905",
+      "precio_compra": 3925.0,
+      "precio_venta": 5150.0,
+      "stock": 55,
+      "categoria_nombre": "Aseo",
+      "activo": true
+    },
+    {
+      "codigo": "P0018",
+      "nombre": "Jabón en barra",
+      "codigo_barras": "2041576221725",
+      "precio_compra": 2978.0,
+      "precio_venta": 3667.0,
+      "stock": 75,
+      "categoria_nombre": "Aseo",
+      "activo": true
+    },
+    {
+      "codigo": "P0019",
+      "nombre": "Harina",
+      "codigo_barras": "8112015251277",
+      "precio_compra": 4867.0,
+      "precio_venta": 6362.0,
+      "stock": 72,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0020",
+      "nombre": "Tomate",
+      "codigo_barras": "6421045256476",
+      "precio_compra": 946.0,
+      "precio_venta": 1384.0,
+      "stock": 63,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0021",
+      "nombre": "Chocolate",
+      "codigo_barras": "9831149809053",
+      "precio_compra": 2236.0,
+      "precio_venta": 2956.0,
+      "stock": 20,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0022",
+      "nombre": "Jabón en barra",
+      "codigo_barras": "6777506881061",
+      "precio_compra": 2747.0,
+      "precio_venta": 3930.0,
+      "stock": 70,
+      "categoria_nombre": "Aseo",
+      "activo": true
+    },
+    {
+      "codigo": "P0023",
+      "nombre": "Pisco",
+      "codigo_barras": "1366342347296",
+      "precio_compra": 3622.0,
+      "precio_venta": 5106.0,
+      "stock": 69,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0024",
+      "nombre": "Papas fritas congeladas",
+      "codigo_barras": "0750383926557",
+      "precio_compra": 1206.0,
+      "precio_venta": 1642.0,
+      "stock": 65,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0025",
+      "nombre": "Galletas de chocolate",
+      "codigo_barras": "1243991050855",
+      "precio_compra": 766.0,
+      "precio_venta": 966.0,
+      "stock": 2,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0026",
+      "nombre": "Verduras mixtas congeladas",
+      "codigo_barras": "4192712133353",
+      "precio_compra": 4849.0,
+      "precio_venta": 6566.0,
+      "stock": 92,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0027",
+      "nombre": "Ajo",
+      "codigo_barras": "2774781620600",
+      "precio_compra": 3997.0,
+      "precio_venta": 4986.0,
+      "stock": 16,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0028",
+      "nombre": "Crema",
+      "codigo_barras": "8767374642084",
+      "precio_compra": 2717.0,
+      "precio_venta": 3799.0,
+      "stock": 67,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0029",
+      "nombre": "Uva",
+      "codigo_barras": "5747211487347",
+      "precio_compra": 4496.0,
+      "precio_venta": 5455.0,
+      "stock": 97,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0030",
+      "nombre": "Pan integral",
+      "codigo_barras": "6951825332828",
+      "precio_compra": 2577.0,
+      "precio_venta": 3196.0,
+      "stock": 30,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0031",
+      "nombre": "Detergente",
+      "codigo_barras": "4473012240478",
+      "precio_compra": 2989.0,
+      "precio_venta": 3708.0,
+      "stock": 86,
+      "categoria_nombre": "Aseo",
+      "activo": true
+    },
+    {
+      "codigo": "P0032",
+      "nombre": "Leche entera",
+      "codigo_barras": "2597057083745",
+      "precio_compra": 3609.0,
+      "precio_venta": 4446.0,
+      "stock": 49,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0033",
+      "nombre": "Tomate",
+      "codigo_barras": "9138305495793",
+      "precio_compra": 3302.0,
+      "precio_venta": 4296.0,
+      "stock": 0,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0034",
+      "nombre": "Leche descremada",
+      "codigo_barras": "1935718615309",
+      "precio_compra": 1167.0,
+      "precio_venta": 1487.0,
+      "stock": 83,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0035",
+      "nombre": "Kuchen de nuez",
+      "codigo_barras": "8627591531670",
+      "precio_compra": 2219.0,
+      "precio_venta": 2915.0,
+      "stock": 50,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0036",
+      "nombre": "Mantequilla",
+      "codigo_barras": "6175262113042",
+      "precio_compra": 4142.0,
+      "precio_venta": 5276.0,
+      "stock": 94,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0037",
+      "nombre": "Salchichas",
+      "codigo_barras": "5254696579660",
+      "precio_compra": 4743.0,
+      "precio_venta": 6683.0,
+      "stock": 94,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0038",
+      "nombre": "Pizza congelada",
+      "codigo_barras": "7222747180439",
+      "precio_compra": 4047.0,
+      "precio_venta": 5282.0,
+      "stock": 38,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0039",
+      "nombre": "Naranja",
+      "codigo_barras": "9945223173777",
+      "precio_compra": 1460.0,
+      "precio_venta": 1970.0,
+      "stock": 76,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0040",
+      "nombre": "Helado de vainilla",
+      "codigo_barras": "5569528580265",
+      "precio_compra": 3269.0,
+      "precio_venta": 4141.0,
+      "stock": 82,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0041",
+      "nombre": "Papas fritas",
+      "codigo_barras": "5344599493450",
+      "precio_compra": 4941.0,
+      "precio_venta": 7212.0,
+      "stock": 69,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0042",
+      "nombre": "Pan batido",
+      "codigo_barras": "3748775881048",
+      "precio_compra": 2543.0,
+      "precio_venta": 3180.0,
+      "stock": 92,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0043",
+      "nombre": "Leche entera",
+      "codigo_barras": "8604465304240",
+      "precio_compra": 692.0,
+      "precio_venta": 1030.0,
+      "stock": 54,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0044",
+      "nombre": "Lechuga",
+      "codigo_barras": "6339494251129",
+      "precio_compra": 2220.0,
+      "precio_venta": 3138.0,
+      "stock": 54,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0045",
+      "nombre": "Kuchen de nuez",
+      "codigo_barras": "4775640058181",
+      "precio_compra": 2502.0,
+      "precio_venta": 3297.0,
+      "stock": 20,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0046",
+      "nombre": "Coca-Cola",
+      "codigo_barras": "5249074685200",
+      "precio_compra": 2925.0,
+      "precio_venta": 3693.0,
+      "stock": 20,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0047",
+      "nombre": "Harina",
+      "codigo_barras": "2650470309875",
+      "precio_compra": 1351.0,
+      "precio_venta": 1658.0,
+      "stock": 62,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0048",
+      "nombre": "Porotos",
+      "codigo_barras": "6505563513515",
+      "precio_compra": 2776.0,
+      "precio_venta": 3615.0,
+      "stock": 21,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0049",
+      "nombre": "Papa",
+      "codigo_barras": "5727625242657",
+      "precio_compra": 1834.0,
+      "precio_venta": 2297.0,
+      "stock": 43,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0050",
+      "nombre": "Jamón",
+      "codigo_barras": "8885353443443",
+      "precio_compra": 3934.0,
+      "precio_venta": 5322.0,
+      "stock": 25,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0051",
+      "nombre": "Barra de cereal",
+      "codigo_barras": "2909042541497",
+      "precio_compra": 3544.0,
+      "precio_venta": 4804.0,
+      "stock": 73,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0052",
+      "nombre": "Shampoo",
+      "codigo_barras": "5147368739298",
+      "precio_compra": 678.0,
+      "precio_venta": 962.0,
+      "stock": 2,
+      "categoria_nombre": "Aseo",
+      "activo": true
+    },
+    {
+      "codigo": "P0053",
+      "nombre": "Fideos",
+      "codigo_barras": "0169181065410",
+      "precio_compra": 3667.0,
+      "precio_venta": 4647.0,
+      "stock": 32,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0054",
+      "nombre": "Kuchen de nuez",
+      "codigo_barras": "9874725533669",
+      "precio_compra": 3680.0,
+      "precio_venta": 4584.0,
+      "stock": 19,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0055",
+      "nombre": "Verduras mixtas congeladas",
+      "codigo_barras": "9847214543470",
+      "precio_compra": 3739.0,
+      "precio_venta": 4529.0,
+      "stock": 79,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0056",
+      "nombre": "Cerveza",
+      "codigo_barras": "8289599592710",
+      "precio_compra": 3320.0,
+      "precio_venta": 4507.0,
+      "stock": 44,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0057",
+      "nombre": "Papa",
+      "codigo_barras": "6691101240033",
+      "precio_compra": 4822.0,
+      "precio_venta": 6393.0,
+      "stock": 2,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0058",
+      "nombre": "Lentejas",
+      "codigo_barras": "2022494909643",
+      "precio_compra": 4650.0,
+      "precio_venta": 6375.0,
+      "stock": 9,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0059",
+      "nombre": "Leche descremada",
+      "codigo_barras": "9811880634633",
+      "precio_compra": 2810.0,
+      "precio_venta": 3453.0,
+      "stock": 42,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0060",
+      "nombre": "Cerveza",
+      "codigo_barras": "0364620487420",
+      "precio_compra": 4967.0,
+      "precio_venta": 6991.0,
+      "stock": 27,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0061",
+      "nombre": "Verduras mixtas congeladas",
+      "codigo_barras": "7654291124995",
+      "precio_compra": 3745.0,
+      "precio_venta": 4507.0,
+      "stock": 0,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0062",
+      "nombre": "Naranja",
+      "codigo_barras": "5413217992122",
+      "precio_compra": 3414.0,
+      "precio_venta": 4222.0,
+      "stock": 8,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0063",
+      "nombre": "Crema",
+      "codigo_barras": "5457051544826",
+      "precio_compra": 1100.0,
+      "precio_venta": 1621.0,
+      "stock": 35,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0064",
+      "nombre": "Papas fritas",
+      "codigo_barras": "0961298625491",
+      "precio_compra": 3787.0,
+      "precio_venta": 5176.0,
+      "stock": 89,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0065",
+      "nombre": "Jamón",
+      "codigo_barras": "4730422874175",
+      "precio_compra": 3255.0,
+      "precio_venta": 3940.0,
+      "stock": 50,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0066",
+      "nombre": "Papa",
+      "codigo_barras": "0060394463508",
+      "precio_compra": 3475.0,
+      "precio_venta": 4603.0,
+      "stock": 77,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0067",
+      "nombre": "Papas fritas congeladas",
+      "codigo_barras": "5694208593317",
+      "precio_compra": 958.0,
+      "precio_venta": 1392.0,
+      "stock": 42,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0068",
+      "nombre": "Croissant",
+      "codigo_barras": "1441991311550",
+      "precio_compra": 3162.0,
+      "precio_venta": 3966.0,
+      "stock": 27,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0069",
+      "nombre": "Maní salado",
+      "codigo_barras": "6936047611395",
+      "precio_compra": 3299.0,
+      "precio_venta": 4927.0,
+      "stock": 34,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0070",
+      "nombre": "Ajo",
+      "codigo_barras": "9504564947449",
+      "precio_compra": 2546.0,
+      "precio_venta": 3495.0,
+      "stock": 31,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0071",
+      "nombre": "Jamón",
+      "codigo_barras": "7425298357477",
+      "precio_compra": 3347.0,
+      "precio_venta": 4959.0,
+      "stock": 22,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0072",
+      "nombre": "Papas fritas congeladas",
+      "codigo_barras": "2940560029302",
+      "precio_compra": 4509.0,
+      "precio_venta": 5739.0,
+      "stock": 83,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0073",
+      "nombre": "Lentejas",
+      "codigo_barras": "4337354313071",
+      "precio_compra": 1050.0,
+      "precio_venta": 1467.0,
+      "stock": 76,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0074",
+      "nombre": "Pepsi",
+      "codigo_barras": "8415654520668",
+      "precio_compra": 4350.0,
+      "precio_venta": 6246.0,
+      "stock": 22,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0075",
+      "nombre": "Kuchen de nuez",
+      "codigo_barras": "0742222306019",
+      "precio_compra": 1048.0,
+      "precio_venta": 1326.0,
+      "stock": 72,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0076",
+      "nombre": "Pepsi",
+      "codigo_barras": "3527296301316",
+      "precio_compra": 3608.0,
+      "precio_venta": 5068.0,
+      "stock": 71,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0077",
+      "nombre": "Empanada de pino",
+      "codigo_barras": "4668002777229",
+      "precio_compra": 4029.0,
+      "precio_venta": 5989.0,
+      "stock": 85,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0078",
+      "nombre": "Plátano",
+      "codigo_barras": "9662875060148",
+      "precio_compra": 3064.0,
+      "precio_venta": 4513.0,
+      "stock": 83,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0079",
+      "nombre": "Queso mantecoso",
+      "codigo_barras": "2108941424577",
+      "precio_compra": 3235.0,
+      "precio_venta": 4765.0,
+      "stock": 12,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0080",
+      "nombre": "Zanahoria",
+      "codigo_barras": "6865505464818",
+      "precio_compra": 713.0,
+      "precio_venta": 980.0,
+      "stock": 63,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0081",
+      "nombre": "Queso mantecoso",
+      "codigo_barras": "1086817203291",
+      "precio_compra": 1960.0,
+      "precio_venta": 2415.0,
+      "stock": 51,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0082",
+      "nombre": "Papas fritas congeladas",
+      "codigo_barras": "4474524950855",
+      "precio_compra": 893.0,
+      "precio_venta": 1152.0,
+      "stock": 21,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0083",
+      "nombre": "Helado de vainilla",
+      "codigo_barras": "3463766497458",
+      "precio_compra": 1352.0,
+      "precio_venta": 1807.0,
+      "stock": 63,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0084",
+      "nombre": "Lechuga",
+      "codigo_barras": "5209197619414",
+      "precio_compra": 2704.0,
+      "precio_venta": 3640.0,
+      "stock": 20,
+      "categoria_nombre": "Verduras",
+      "activo": true
+    },
+    {
+      "codigo": "P0085",
+      "nombre": "Manzana",
+      "codigo_barras": "0879206271008",
+      "precio_compra": 1782.0,
+      "precio_venta": 2561.0,
+      "stock": 87,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0086",
+      "nombre": "Chocolate",
+      "codigo_barras": "0812932609783",
+      "precio_compra": 2301.0,
+      "precio_venta": 3162.0,
+      "stock": 56,
+      "categoria_nombre": "Snacks",
+      "activo": true
+    },
+    {
+      "codigo": "P0087",
+      "nombre": "Agua mineral",
+      "codigo_barras": "4596716940298",
+      "precio_compra": 895.0,
+      "precio_venta": 1175.0,
+      "stock": 11,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0088",
+      "nombre": "Pizza congelada",
+      "codigo_barras": "7605865122961",
+      "precio_compra": 3906.0,
+      "precio_venta": 5805.0,
+      "stock": 100,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0089",
+      "nombre": "Sal fina",
+      "codigo_barras": "5405143799883",
+      "precio_compra": 1207.0,
+      "precio_venta": 1749.0,
+      "stock": 98,
+      "categoria_nombre": "Despensa",
+      "activo": true
+    },
+    {
+      "codigo": "P0090",
+      "nombre": "Pan integral",
+      "codigo_barras": "0754993070976",
+      "precio_compra": 803.0,
+      "precio_venta": 1138.0,
+      "stock": 70,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0091",
+      "nombre": "Kuchen de nuez",
+      "codigo_barras": "6678068026320",
+      "precio_compra": 2616.0,
+      "precio_venta": 3174.0,
+      "stock": 100,
+      "categoria_nombre": "Panadería",
+      "activo": true
+    },
+    {
+      "codigo": "P0092",
+      "nombre": "Jamón",
+      "codigo_barras": "4236936670208",
+      "precio_compra": 4046.0,
+      "precio_venta": 5357.0,
+      "stock": 45,
+      "categoria_nombre": "Carnes",
+      "activo": true
+    },
+    {
+      "codigo": "P0093",
+      "nombre": "Papas fritas congeladas",
+      "codigo_barras": "9199616097359",
+      "precio_compra": 1172.0,
+      "precio_venta": 1699.0,
+      "stock": 57,
+      "categoria_nombre": "Congelados",
+      "activo": true
+    },
+    {
+      "codigo": "P0094",
+      "nombre": "Frutilla",
+      "codigo_barras": "9128717480371",
+      "precio_compra": 3023.0,
+      "precio_venta": 4366.0,
+      "stock": 88,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0095",
+      "nombre": "Leche descremada",
+      "codigo_barras": "3131626869072",
+      "precio_compra": 651.0,
+      "precio_venta": 856.0,
+      "stock": 25,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0096",
+      "nombre": "Yogur natural",
+      "codigo_barras": "2120126783859",
+      "precio_compra": 1549.0,
+      "precio_venta": 2298.0,
+      "stock": 78,
+      "categoria_nombre": "Lácteos",
+      "activo": true
+    },
+    {
+      "codigo": "P0097",
+      "nombre": "Pisco",
+      "codigo_barras": "7700371314555",
+      "precio_compra": 3151.0,
+      "precio_venta": 4251.0,
+      "stock": 44,
+      "categoria_nombre": "Bebidas",
+      "activo": true
+    },
+    {
+      "codigo": "P0098",
+      "nombre": "Pera",
+      "codigo_barras": "2672800885866",
+      "precio_compra": 1848.0,
+      "precio_venta": 2399.0,
+      "stock": 61,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    },
+    {
+      "codigo": "P0099",
+      "nombre": "Frutilla",
+      "codigo_barras": "2475184716197",
+      "precio_compra": 2680.0,
+      "precio_venta": 3892.0,
+      "stock": 41,
+      "categoria_nombre": "Frutas",
+      "activo": true
+    }
+  ]
+}

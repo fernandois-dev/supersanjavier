@@ -12,8 +12,9 @@ settings.configure(
     DATABASES={
         "default": {
             "ENGINE": "django.db.backends.sqlite3",  # Puedes cambiar a PostgreSQL/MySQL
+            "NAME": "data/database.db",
             # "NAME": os.path.join(os.path.dirname(__file__), "data/database.db"),
-            "NAME": "database.db",
+            # "NAME": "database.db",
         }
     },
     INSTALLED_APPS=[

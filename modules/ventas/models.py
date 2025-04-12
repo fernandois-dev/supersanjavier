@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.db import models
-from apps.comun.models import Usuario
-from apps.inventario.models import Producto
+from modules.comun.models import Usuario
+from modules.inventario.models import Producto
 from data.custom_fields import CustomAutoField, CustomBooleanField, CustomCharField, CustomDateTimeField, CustomForeignKey, CustomIntegerField, CustomMoneyField
 
 VENTA_STATE_CHOICES = [
@@ -68,6 +68,7 @@ class DetalleVenta(models.Model):
     producto = CustomForeignKey(Producto, verbose_name="Producto", on_delete=models.PROTECT, null=False, blank=False, is_sortable=True)
     cantidad = CustomIntegerField(verbose_name="Cantidad", null=False, blank=False)
     precio = CustomMoneyField(verbose_name="Precio", null=False, blank=False)
+    descuento = CustomMoneyField(verbose_name="Descuento", null=False, blank=False, default=0)
     total = CustomMoneyField(verbose_name="Total", null=False, blank=False, read_only=True, default=0)
 
     def __str__(self):

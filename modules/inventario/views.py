@@ -1,5 +1,5 @@
 from pages.generic_page import GenericPage
-from apps.inventario.models import Producto, Categoria
+from modules.inventario.models import Producto, Categoria
 import flet as ft
 
 from pages.generic_page_form_standard import GenericPageFormStandar

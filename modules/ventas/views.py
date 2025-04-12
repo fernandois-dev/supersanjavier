@@ -1,11 +1,12 @@
 from components.custom_input import SearchField
 from pages.generic_page import GenericPage
-from apps.ventas.models import Caja, Venta, DetalleVenta, ActividadCaja
+from modules.ventas.models import Caja, Venta, DetalleVenta, ActividadCaja
 import flet as ft
 
 from pages.generic_page_form_standard import GenericPageFormStandar
 from pages.generic_header_detail_form import GenericHeaderDetailForm
 from pages.conditions import Conditions
+from utilities.utilities import num_or_zero
 
 
 
@@ -35,14 +36,14 @@ def venta_form(page: ft.Page, params: dict):
         fields_excluded=["state"],
         related_objects={"detalleventa_set": {
             'fields_excluded': ["id","venta"],
-            'fields_order':["cantidad", "producto", "precio", "total"],
+            'fields_order':["cantidad", "producto", "precio","descuento", "total"],
             'fields_calculations':{
                 "precio": { 
                     "depends": ["producto"], 
                     "calculation": lambda obj: obj.producto.precio_venta if obj.producto_id else 0},
                 "total": { 
-                    "depends": ["cantidad", "precio"], 
-                    "calculation": lambda obj: obj.cantidad * obj.precio if obj.cantidad and obj.precio else 0,},
+                    "depends": ["cantidad", "precio", "descuento"], 
+                    "calculation": lambda obj: num_or_zero(obj.cantidad) * ((num_or_zero(obj.precio)-num_or_zero(obj.descuento)))},
                 "__parent__total": {
                     "depends": ["total"],  # Depende de los hijos
                     "calculation": lambda parent, children: sum(child.total for child in children if child.total)
@@ -51,7 +52,7 @@ def venta_form(page: ft.Page, params: dict):
             'overrides_input_type':{
                 "producto": SearchField
             },
-            'fields_expand':{"cantidad":2, "producto":4, "precio":3, "total":3}
+            'fields_expand':{"cantidad":2, "producto":4, "precio":3, "descuento":3,"total":3}
         }}
     )
     view = GenericHeaderDetailForm(page=page, _model=Venta, params=params, conditions=conditions)

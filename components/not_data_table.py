@@ -4,15 +4,48 @@ from components.custom_dialogs import DlgConfirm
 from components.field_builder import FieldBuilder
 from pages.conditions import Conditions
 from components.custom_input import DisplayMode, LayoutMode
+from utilities.style_manager import StyleManager as SM
+from utilities.style_keys import StyleKeys as SK
 
 class NotDataTableHeader(ft.Container):
-    def __init__(self, data, model, is_chk_column_enabled = True, is_editable = False, handle_all_row_selected=None, on_click_column=None, conditions=Conditions(), *args, **kwargs):
+    """
+    Represents the header of a data table, including column headers and an optional checkbox for selecting all rows.
+    """
+    def __init__(
+        self,
+        data: List[Any],
+        model: Any,
+        is_chk_column_enabled: bool = True,
+        is_editable: bool = False,
+        handle_all_row_selected: Optional[Callable[[ft.ControlEvent], None]] = None,
+        on_click_column: Optional[Callable[[Dict[str, str]], None]] = None,
+        conditions: Conditions = Conditions(),
+        *args,
+        **kwargs,
+    ):
+        """
+        Initializes the NotDataTableHeader component.
+
+        Args:
+            data (List[Any]): The data to display in the table.
+            model (Any): The model associated with the table.
+            is_chk_column_enabled (bool): Whether the checkbox column is enabled.
+            is_editable (bool): Whether the table is editable.
+            handle_all_row_selected (Optional[Callable[[ft.ControlEvent], None]]): Callback for selecting all rows.
+            on_click_column (Optional[Callable[[Dict[str, str]], None]]): Callback for column click events.
+            conditions (Conditions): Conditions for filtering and displaying data.
+        """
         super().__init__(*args, **kwargs)
         self.is_chk_column_enabled = is_chk_column_enabled
         self.content= None
+        
+        self._dict = {}
+        
+        # UI properties
+        self.bg_color_primary: str = ft.Colors.with_opacity(1, ft.Colors.SECONDARY_CONTAINER)
+        self.bg_color_secondary: str = ft.Colors.with_opacity(0.1, ft.Colors.SECONDARY)
         self.bgcolor=ft.Colors.with_opacity(1, ft.Colors.SECONDARY_CONTAINER)
         self.height=45
-        self._dict = {}
         
         self.bg_color_prin = ft.Colors.with_opacity(1, ft.Colors.SECONDARY_CONTAINER)
         self.bg_color_sec = ft.Colors.with_opacity(0.1, ft.Colors.SECONDARY)
@@ -24,66 +57,65 @@ class NotDataTableHeader(ft.Container):
         
         self.conditions = conditions
         
-        self.chk_column = ft.Checkbox(label="", value=False, width=40, tristate=True, on_change=lambda e: self.handle_all_row_selected(e))
+        # self.chk_column = ft.Checkbox(label="", value=False, width=40, tristate=True, on_change=lambda e: self.handle_all_row_selected(e))
     
     def build_header(self):
         list_header_row = []
-            # HEADERS
-        if not list_header_row:
-            if self.is_chk_column_enabled: list_header_row.append(self.chk_column)
-            
-            if self.is_editable: list_header_row.append(ft.Container(width=40))
-            
-            fields_order = self.conditions.fields_order or [field.name for field in self._model._meta.fields]
+        self.chk_column = ft.Checkbox(label="", value=False, width=40, tristate=True, on_change=lambda e: self.handle_all_row_selected(e))
+        if self.is_chk_column_enabled: list_header_row.append(self.chk_column)
         
-            for field_name in fields_order:
-                col = next((field for field in self._model._meta.fields if field.name == field_name), None)
-                if not col:
-                    continue
-                if col.hidden or col.name in self.conditions.fields_excluded: 
-                    continue
+        if self.is_editable: list_header_row.append(ft.Container(width=40))
+        
+        fields_order = self.conditions.fields_order or [field.name for field in self._model._meta.fields]
+    
+        for field_name in fields_order:
+            col = next((field for field in self._model._meta.fields if field.name == field_name), None)
+            if not col:
+                continue
+            if col.hidden or col.name in self.conditions.fields_excluded: 
+                continue
+            
+            
+            order_col = ""
+            for key in self._dict:
+                if key == col.name:
+                    order_col = f'{key}-{self._dict[key]}'
                 
+            # HEADER ALIGMENT    
+            if col.aligment == "center":
+                header_aligment = ft.MainAxisAlignment.CENTER
+            elif col.aligment == "right":
+                header_aligment = ft.MainAxisAlignment.END
+            else:
+                header_aligment = ft.MainAxisAlignment.START
                 
-                order_col = ""
-                for key in self._dict:
-                    if key == col.name:
-                        order_col = f'{key}-{self._dict[key]}'
-                    
-                # HEADER ALIGMENT    
-                if col.aligment == "center":
-                    header_aligment = ft.MainAxisAlignment.CENTER
-                elif col.aligment == "right":
-                    header_aligment = ft.MainAxisAlignment.END
-                else:
-                    header_aligment = ft.MainAxisAlignment.START
-                    
+            
+            icon = ft.Container()
+            text_header_expand = None
+            sort = getattr(col, "is_sortable", False) if not self.is_editable else False
+            if sort:
+                icon = ft.Icon("arrow_drop_down") if "desc" in order_col else ft.Icon("arrow_drop_up")
+                text_header_expand = 1
+            text_header = ft.Container(
+                content=ft.Row(
+                    controls=[ft.Text(col.verbose_name, weight="bold", expand=text_header_expand),icon],
+                    alignment=header_aligment),
+                margin=ft.margin.symmetric(horizontal=0),
+                expand=True,
+            )
                 
-                icon = ft.Container()
-                text_header_expand = None
-                sort = getattr(col, "is_sortable", False) if not self.is_editable else False
-                if sort:
-                    icon = ft.Icon("arrow_drop_down") if "desc" in order_col else ft.Icon("arrow_drop_up")
-                    text_header_expand = 1
-                text_header = ft.Container(
-                    content=ft.Row(
-                        controls=[ft.Text(col.verbose_name, weight="bold", expand=text_header_expand),icon],
-                        alignment=header_aligment),
-                    margin=ft.margin.symmetric(horizontal=0),
-                    expand=True,
+            container = ft.Container(text_header, 
+                on_hover=(lambda e: on_hover(e)) if sort else None,
+                on_click=(lambda e: on_click(e)) if sort else None,
+                expand=self.conditions.fields_expand.get(col.name, 1),
+                data=col.name,
+                padding=ft.padding.symmetric(horizontal=5),
+                alignment=ft.alignment.center_left,
+                bgcolor=self.bg_color_sec if col.name in order_col else self.bg_color_prin,
+                # margin=ft.margin.symmetric(horizontal=5),
                 )
-                    
-                container = ft.Container(text_header, 
-                    on_hover=(lambda e: on_hover(e)) if sort else None,
-                    on_click=(lambda e: on_click(e)) if sort else None,
-                    expand=self.conditions.fields_expand.get(col.name, 1),
-                    data=col.name,
-                    padding=ft.padding.symmetric(horizontal=5),
-                    alignment=ft.alignment.center_left,
-                    bgcolor=self.bg_color_sec if col.name in order_col else self.bg_color_prin,
-                    # margin=ft.margin.symmetric(horizontal=5),
-                    )
-                # container.expand = self.conditions.fields_expand.get(col.name, 1)
-                list_header_row.append(container)
+            # container.expand = self.conditions.fields_expand.get(col.name, 1)
+            list_header_row.append(container)
                 
         self.content= ft.Row(controls=list_header_row, spacing=0)
 
@@ -174,7 +206,6 @@ class NotDataTableHeader(ft.Container):
             self.chk_column.value = False
         else:
             self.chk_column.value = None
-        self.chk_column.update()
         self.content.controls[0].update()
 
               
@@ -216,6 +247,8 @@ class NotDataRowTable(ft.Container):
                                  conditions=self.conditions, page=self.page, get_parent=get_parent)
         self.controls.append(self.form)
         self.content= ft.Row(controls=self.controls, vertical_alignment=ft.VerticalAlignment.CENTER, spacing=0)
+        # Styles of the row
+        self.height=SM.get(SK.TABLE_ROW_HEIGHT, None)
      
     def handle_on_change_chk_column(self, e):
         if e.control.value == True:
@@ -284,6 +317,7 @@ class NotDataRowTable(ft.Container):
         return relaciones
 
     def set_value_chk_row(self, value):
+        self.is_selected = value
         self.chk_column.value = value
         self.chk_column.update()
    
@@ -495,7 +529,7 @@ class NotDataTable(ft.Column):
                 get_parent=self.get_parent,
             ) for idx, obj in enumerate(self._data)
         ]
-        self.component_body.controls=list_data_row    
+        self.component_body.controls=list_data_row
     
     def build_footer(self):
         """
@@ -580,7 +614,7 @@ class NotDataTable(ft.Column):
         Returns:
             bool: True if all rows were saved successfully, False otherwise.
         """
-        return all(row.save(**kwargs) for row in self.rows)
+        return all(row.save(**kwargs) for row in self.component_body.controls)
     
     def check_is_dirty(self):
         """
@@ -589,4 +623,4 @@ class NotDataTable(ft.Column):
         Returns:
             bool: True if there are unsaved changes, False otherwise.
         """
-        return any(row.check_is_dirty() for row in self.rows)
+        return any(row.check_is_dirty() for row in self.component_body.controls)

@@ -82,7 +82,7 @@ class GenericPage(ft.Column):
         """
         return NotDataTable(
             handle_on_long_press=self.display_form,
-            on_row_selected=self.handle_on_select_row,
+            on_row_selected=self.handle_on_row_selected,
             on_click_column=self.set_dict_order,
             conditions=self.conditions,
         )
@@ -401,7 +401,7 @@ class GenericPage(ft.Column):
         ]
         self.menu_table.update()
     
-    def handle_on_select_row(self, list_obj):  
+    def handle_on_row_selected(self, list_obj):  
         if len(list_obj) > 0:
             self.set_actions_menu(list_obj)
         else:

@@ -1,30 +1,30 @@
 import flet as ft
 
 from components.left_navigation_menu import LeftNavigationMenu
-from menudata import MenuData
 from pages.generic_page import GenericPage
 from pages.not_found_page import NotFoundPage
 from router.router import Router #new import
 
 
-
-
-menudata = MenuData()
-
 class ControlView(ft.Row):
-    def __init__(self, page: ft.Page):
+    def __init__(self, page: ft.Page, modules=[], menudata = None):
         super().__init__()
         self.page = page
         self.menudata = menudata
-        self.left_nav = LeftNavigationMenu(menudata, page)
-        self.control_page = ControlPages(page = self.page)
+        self.left_nav = LeftNavigationMenu(menudata, page) if menudata else None
+        self.control_page = ControlPages(modules = modules, page = self.page)
         self.expand = True
         self.vertical_alignment = ft.CrossAxisAlignment.START
-        self.controls = [
-            self.left_nav,
-            ft.VerticalDivider(width=1),
-            self.control_page,
-        ]
+        if self.left_nav:
+            self.controls = [
+                self.left_nav,
+                ft.VerticalDivider(width=1),
+                self.control_page,
+            ]
+        else:
+            self.controls = [
+                self.control_page,
+            ]
 
     def display(self, params):
         self.control_page.display(params)
@@ -38,12 +38,12 @@ class ControlView(ft.Row):
         
 
 class ControlPages(ft.Column):
-    def __init__(self, page: ft.Page):
+    def __init__(self, page: ft.Page, modules = []):
         super().__init__()
         self.expand = 1
         self.controls = []
         self.page = page
-        self.router = Router(self.page)  # Instantiate the Router
+        self.router = Router(modules=modules, page=self.page)  # Instantiate the Router
         self.scroll = ft.ScrollMode.AUTO
 
     def display(self, params):

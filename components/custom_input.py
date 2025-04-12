@@ -3,6 +3,8 @@ import inspect
 import flet as ft
 from collections.abc import Callable
 import locale
+import threading
+import time
 
 from components.custom_buttons import CustomIconButton
 from pages.conditions import Conditions
@@ -222,17 +224,28 @@ class CustomDateTimeView(ft.Container):
 
 
 class CustomMoneyView(ft.Container):
-    def __init__(self, value, *args, **kwargs):
+    def __init__(self, value, size=None, color=None ,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.value = value
         self.content = ft.Row(
             controls = [
-                ft.Text("$ "),
-                ft.Text(format_currency(self.value))
+                ft.Text(""),
+                ft.Text(format_currency(self.value), size=size, color=color)
             ],
             alignment=ft.MainAxisAlignment.END,
         )
         self.padding = ft.padding.only(right=10)
+        
+    @property
+    def value(self):
+        return self._value
+    
+    @value.setter
+    def value(self, value):
+        self._value = value
+        if self.content:
+            self.content.controls[1].value = format_currency(value) if value else ""
+            self.content.update()
         
             
 class CustomIntegerView(ft.Container):
@@ -446,7 +459,7 @@ class CustomDropdown(ft.DropdownM2):
 
 
 class SearchField(ft.Container):
-    def __init__(self , field,  border=None, on_change=None, on_submit = None, width=350, name="", label=None, value=None,data=None, helper_text="", 
+    def __init__(self , field, page=None,  border=None, on_change=None, on_submit = None, width=350, name="", label=None, value=None,data=None, helper_text="", 
                  helper_style=None, border_color=None, hint_text=None, hint_style=None, *args, **kwargs):
         super().__init__()
         self.on_change = on_change
@@ -464,6 +477,7 @@ class SearchField(ft.Container):
         self._border_color = border_color
         self._hint_text = hint_text
         self._hint_style = hint_style
+        self.page = page
 
         # Configurar el TextField
         self.text_field = ft.TextField(
@@ -510,6 +524,30 @@ class SearchField(ft.Container):
         )
         
         if self.value: self.text_field.bgcolor = ft.Colors.SECONDARY_CONTAINER
+    
+    @property
+    def focus(self):
+        """Devuelve si el campo de texto tiene el foco."""
+        return self.text_field.focus
+
+    @focus.setter
+    def focus(self, value):
+        """Establece el foco en el campo de texto."""
+        if hasattr(self, "text_field"):
+            self.text_field.focus = value
+            self.text_field.update()
+        
+    @property
+    def value(self):
+        return self._value
+    
+    @value.setter
+    def value(self, value):
+        self._value = value
+        if hasattr(self, "text_field"):
+            self.text_field.value = value
+            self.text_field.bgcolor = ft.Colors.TRANSPARENT
+            self.text_field.update()
      
     @property
     def helper_text(self):
@@ -608,6 +646,7 @@ class SearchField(ft.Container):
                 self.value = str(result[0])
                 self.data = result[0]
                 self.text_field.update()
+                # self.page.close(self.suggestions_modal)
                 self.on_change(None, value=self.data)
             else:
                 
@@ -628,9 +667,10 @@ class SearchField(ft.Container):
         
         # self.page.close(self.suggestions_modal)  # Cerrar el modal
         # self.text_field.focus()
+        # self.page.update()
         if self.on_submit_callback:
             self.on_submit_callback(self.text_field.value)
-        self.page.update()
+        
 
     def update_suggestions(self, e):
         self.text_field.bgcolor = ft.Colors.ON_PRIMARY
@@ -639,7 +679,8 @@ class SearchField(ft.Container):
         self.on_change(None)
 
     def update_modal_suggestions(self, e):
-        if not e.control.value or len(e.control.value) <= 3: return
+        # if not e.control.value or len(e.control.value) <= 3: return
+        if not e.control.value: return
         result = buscar_modelo(self.field.related_model.objects.all(), e.control.value)[:100]
         
         self.suggestions_modal.content.controls[1].controls = [  # Actualizar la segunda Column
@@ -658,142 +699,209 @@ class SearchField(ft.Container):
         self.data = value
         self.value = value
         self.text_field.update()
-        self.on_change(None, value=self.data)
-        
-        self.page.close(self.suggestions_modal)  # Cerrar el modal
+        self.page.close(self.suggestions_modal)
         self.text_field.focus()
         self.page.update()
-    
-
-class CustomSearchInput(ft.Row):
-    def __init__(self , field, page:ft.Page, on_change=None, name="", label=None, value=None,data=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.page = page
-        self.on_change = on_change
-        self.name = field.name
-        self.field = field
-        self.label = label
-        self.value = value
-        self.data = data
-        self.spacing = 0
-        self.expand = True
-        # self.height = STYLE_DEFAULT["height"]
-        # self.width = 350
-        # self.dlg = ft.AlertDialog(
-        #     modal=True,
-        #     title=ft.Text("Busqueda"),
-        #     content=ft.Text("Do you really want to delete all those files?"),
-        #     actions=[
-        #         ft.TextButton("ACEPTAR", on_click= lambda e : self.handle_dlg_yes()),
-        #         ft.TextButton("CANCELAR", on_click= lambda e : self.handle_dlg_no()),
-        #     ],
-        #     actions_alignment=ft.MainAxisAlignment.END,
-        # )
-        # self.btn_search = CustomIconButton(icon=ft.Icons.SEARCH, on_click=self.handle_search)
-        # self.txt_search = ft.TextField(label="Buscar", expand=True, on_submit=self.handle_submit)
-        self.searchbar = ft.SearchBar(on_submit=lambda e: self.handle_submit_with_focus(self.searchbar, self.handle_submit_searchbar, e), 
-                                      on_change=self.handle_on_change, value=self.value, data=self.data)
-        self.searchbar.view_elevation = 0
-        self.searchbar.bar_bgcolor = ft.Colors.TRANSPARENT
-        self.searchbar.bar_shadow_color = ft.Colors.ON_PRIMARY
-        self.searchbar.bar_shape = ft.RoundedRectangleBorder(radius=0)
-        self.searchbar.view_shape = ft.RoundedRectangleBorder(radius=0)
-        self.searchbar.bar_shadow_size = 0
-        self.searchbar.bar_padding = ft.padding.only(top=3, right=3, bottom=0, left=3)
-        self.searchbar.bar_scroll_padding = ft.padding.all(0)
-        self.searchbar.view_elevation = 0
-        self.searchbar.bar_elevation = 0
-        self.searchbar.height = 35
-        self.searchbar.autofocus = True
-        self.searchbar.expand = True
-        # self.searchbar.height = STYLE_DEFAULT["height"]
-        # self.controls = [self.txt_search, self.btn_search]
-        self.controls = [self.searchbar]
-        
-    # def handle_search(self, e):
-    #     self.page.open(self.dlg)
-        
-    def handle_dlg_no(self):
-        if self.fn_no:
-            pass
-        self.page.close(self)
-        
-    def handle_dlg_yes(self):
-        pass
-        self.page.close(self)
-          
-    def close_anchor(self, e):
-        text = f"{e.control.data}"
-        self.searchbar.close_view(text)
-        self.searchbar.value = e.control.data
-        self.searchbar.data = e.control.data
-        self.searchbar.bar_bgcolor ={ ft.ControlState.DEFAULT: ft.Colors.SECONDARY_CONTAINER, 
-                                     ft.ControlState.SELECTED: ft.Colors.SECONDARY_CONTAINER,  
-                                     ft.ControlState.HOVERED: ft.Colors.SECONDARY_CONTAINER,  
-                                     }
-        # ft.Colors.SECONDARY_CONTAINER
-        self.data = e.control.data
-        self.searchbar.update()
         self.on_change(None, value=self.data)
+    
+    
+class ToastManager:
+    
+    _column_toast = ft.Column(controls=[ft.Text("Mensaje de Toast")],)
+    _container = ft.Container(
+        _column_toast,
+        alignment=ft.alignment.top_right,
+        padding=ft.padding.only(top=5, right=50),
+        )
+    
+    @classmethod
+    def toast(cls, page: ft.Page, message: str, duration: int = 0, close_button: bool = True):
+        page.overlay.append(cls._container)
+        
 
-    # def handle_change(self, e):
-        # print(f"handle_change e.data: {e.data}")
+    # def build(self):
+    #     # Puede ser un contenedor flotante con fondo semitransparente
+    #     close_btn = ft.IconButton(
+    #         icon=ft.icons.CLOSE,
+    #         on_click=lambda e: self.hide(),
+    #         tooltip="Cerrar Toast",
+    #     )
+    #     toast_content = ft.Row(
+    #         controls=[
+    #             ft.Text(self.message, color=ft.colors.WHITE),
+    #             close_btn if self.close_button else ft.Container(),
+    #         ],
+    #         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+    #     )
+
+    #     return ft.Container(
+    #         content=toast_content,
+    #         bgcolor=ft.colors.BLACK87,
+    #         padding=10,
+    #         opacity=0.95,
+    #         border_radius=ft.border_radius.all(5),
+    #         width=300,
+    #         left=0,
+    #         right=0,
+    #         bottom=50,  # Se muestra cerca de la parte inferior de la ventana
+    #         animate_opacity=300,
+    #         animate_position=300,
+    #         alignment=ft.alignment.center,
+    #     )
+
+    # def show(self, page: ft.Page):
+    #     # Agregar el Toast al overlay de la página y actualizar
+    #     if self not in page.overlay:
+    #         page.overlay.append(self)
+    #     self.visible = True
+    #     page.update()
+    #     self.update()
         
-    def handle_on_change(self, e):
-        self.searchbar.bar_bgcolor = ft.Colors.ON_PRIMARY
-        self.data = None
-        self.searchbar.update()
-        self.on_change(None)
+
+    #     # Inicio de hilo para el auto-cierre
+    #     if self.duration > 0:
+    #         def auto_close():
+    #             time.sleep(self.duration)
+    #             self.hide()
+    #         threading.Thread(target=auto_close, daemon=True).start()
+
+    # def hide(self):
+    #     # Ocultar el Toast y removerlo del overlay
+    #     self.visible = False
+    #     if self.page and self in self.page.overlay:
+    #         self.page.overlay.remove(self)
+    #     if self.page:
+    #         self.page.update()
+
+# class CustomSearchInput(ft.Row):
+#     def __init__(self , field, page:ft.Page, on_change=None, name="", label=None, value=None,data=None, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.page = page
+#         self.on_change = on_change
+#         self.name = field.name
+#         self.field = field
+#         self.label = label
+#         self.value = value
+#         self.data = data
+#         self.spacing = 0
+#         self.expand = True
+#         # self.height = STYLE_DEFAULT["height"]
+#         # self.width = 350
+#         # self.dlg = ft.AlertDialog(
+#         #     modal=True,
+#         #     title=ft.Text("Busqueda"),
+#         #     content=ft.Text("Do you really want to delete all those files?"),
+#         #     actions=[
+#         #         ft.TextButton("ACEPTAR", on_click= lambda e : self.handle_dlg_yes()),
+#         #         ft.TextButton("CANCELAR", on_click= lambda e : self.handle_dlg_no()),
+#         #     ],
+#         #     actions_alignment=ft.MainAxisAlignment.END,
+#         # )
+#         # self.btn_search = CustomIconButton(icon=ft.Icons.SEARCH, on_click=self.handle_search)
+#         # self.txt_search = ft.TextField(label="Buscar", expand=True, on_submit=self.handle_submit)
+#         self.searchbar = ft.SearchBar(on_submit=lambda e: self.handle_submit_with_focus(self.searchbar, self.handle_submit_searchbar, e), 
+#                                       on_change=self.handle_on_change, value=self.value, data=self.data)
+#         self.searchbar.view_elevation = 0
+#         self.searchbar.bar_bgcolor = ft.Colors.TRANSPARENT
+#         self.searchbar.bar_shadow_color = ft.Colors.ON_PRIMARY
+#         self.searchbar.bar_shape = ft.RoundedRectangleBorder(radius=0)
+#         self.searchbar.view_shape = ft.RoundedRectangleBorder(radius=0)
+#         self.searchbar.bar_shadow_size = 0
+#         self.searchbar.bar_padding = ft.padding.only(top=3, right=3, bottom=0, left=3)
+#         self.searchbar.bar_scroll_padding = ft.padding.all(0)
+#         self.searchbar.view_elevation = 0
+#         self.searchbar.bar_elevation = 0
+#         self.searchbar.height = 35
+#         self.searchbar.autofocus = True
+#         self.searchbar.expand = True
+#         # self.searchbar.height = STYLE_DEFAULT["height"]
+#         # self.controls = [self.txt_search, self.btn_search]
+#         self.controls = [self.searchbar]
         
-    def handle_submit_searchbar(self,e):
-        if not e.data or len(e.data) <= 3: return
+#     # def handle_search(self, e):
+#     #     self.page.open(self.dlg)
         
-        result = buscar_modelo(self.field.related_model.objects.all(), e.data)
-        if result:
-            if len(result) == 1:
-                self.searchbar.value = str(result[0])
-                self.searchbar.data = result[0]
-                self.searchbar.bar_bgcolor = ft.Colors.SECONDARY_CONTAINER
-                self.data = result[0]
-                self.searchbar.update()
-                self.on_change(None, value=self.data)
-            else:
-                self.searchbar.controls = [ft.ListTile(title=ft.Text(f"{i}"), on_click=self.close_anchor, data=i) for i in result]
-                self.searchbar.update()
-                self.searchbar.open_view()
-        else:
-            self.searchbar.selection_start = 0
-            self.searchbar.selection_end = len(e.data)
-            self.searchbar.update()
-            self.searchbar.focused = True
-            self.searchbar.update()
+#     def handle_dlg_no(self):
+#         if self.fn_no:
+#             pass
+#         self.page.close(self)
+        
+#     def handle_dlg_yes(self):
+#         pass
+#         self.page.close(self)
+          
+#     def close_anchor(self, e):
+#         text = f"{e.control.data}"
+#         self.searchbar.close_view(text)
+#         self.searchbar.value = e.control.data
+#         self.searchbar.data = e.control.data
+#         self.searchbar.bar_bgcolor ={ ft.ControlState.DEFAULT: ft.Colors.SECONDARY_CONTAINER, 
+#                                      ft.ControlState.SELECTED: ft.Colors.SECONDARY_CONTAINER,  
+#                                      ft.ControlState.HOVERED: ft.Colors.SECONDARY_CONTAINER,  
+#                                      }
+#         # ft.Colors.SECONDARY_CONTAINER
+#         self.data = e.control.data
+#         self.searchbar.update()
+#         self.on_change(None, value=self.data)
+
+#     # def handle_change(self, e):
+#         # print(f"handle_change e.data: {e.data}")
+        
+#     def handle_on_change(self, e):
+#         self.searchbar.bar_bgcolor = ft.Colors.ON_PRIMARY
+#         self.data = None
+#         self.searchbar.update()
+#         self.on_change(None)
+        
+#     def handle_submit_searchbar(self,e):
+#         if not e.data or len(e.data) <= 3: return
+        
+#         result = buscar_modelo(self.field.related_model.objects.all(), e.data)
+#         if result:
+#             if len(result) == 1:
+#                 self.searchbar.value = str(result[0])
+#                 self.searchbar.data = result[0]
+#                 self.searchbar.bar_bgcolor = ft.Colors.SECONDARY_CONTAINER
+#                 self.data = result[0]
+#                 self.searchbar.update()
+#                 self.on_change(None, value=self.data)
+#             else:
+#                 self.searchbar.controls = [ft.ListTile(title=ft.Text(f"{i}"), on_click=self.close_anchor, data=i) for i in result]
+#                 self.searchbar.update()
+#                 self.searchbar.open_view()
+#         else:
+#             self.searchbar.selection_start = 0
+#             self.searchbar.selection_end = len(e.data)
+#             self.searchbar.update()
+#             self.searchbar.focused = True
+#             self.searchbar.update()
             
-    def handle_submit_with_focus(self, control, callback, event):
-        """
-        Maneja el evento on_submit y restablece el foco al control.
+#     def handle_submit_with_focus(self, control, callback, event):
+#         """
+#         Maneja el evento on_submit y restablece el foco al control.
         
-        Args:
-            control: El control que debe mantener el foco.
-            callback: La función de callback que maneja el evento on_submit.
-            event: El evento on_submit.
-        """
-        # Llamar al callback original
-        if callback:
-            callback(event)
+#         Args:
+#             control: El control que debe mantener el foco.
+#             callback: La función de callback que maneja el evento on_submit.
+#             event: El evento on_submit.
+#         """
+#         # Llamar al callback original
+#         if callback:
+#             callback(event)
         
-        # Restablecer el foco al control
-        control.focused = True
-        control.update()
+#         # Restablecer el foco al control
+#         control.focused = True
+#         control.update()
 
-    def handle_submit(self,e):
-        if not e.data or len(e.data) <= 3: return
+#     def handle_submit(self,e):
+#         if not e.data or len(e.data) <= 3: return
         
-        result = buscar_modelo(self.model.objects.all(), e.data)
-        if result:
-            if len(result) == 1:
-                self.txt_search.value = str(result[0])
-                self.txt_search.data = result[0]
-                self.txt_search.update()
+#         result = buscar_modelo(self.model.objects.all(), e.data)
+#         if result:
+#             if len(result) == 1:
+#                 self.txt_search.value = str(result[0])
+#                 self.txt_search.data = result[0]
+#                 self.txt_search.update()
             
 
 def get_input_by_type(input_type: str, **kwargs):
