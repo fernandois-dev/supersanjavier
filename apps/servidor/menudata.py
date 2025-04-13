@@ -70,5 +70,12 @@ class MenuData:
                 selected_icon=ft.icons.RECEIPT_LONG,
                 
             ),
+            ControlGroup(
+                name="config",
+                label="Configuracion",
+                icon=ft.icons.SETTINGS_OUTLINED,
+                selected_icon=ft.icons.SETTINGS,
+                
+            ),
         ]
 

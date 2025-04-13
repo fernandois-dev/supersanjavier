@@ -20,7 +20,8 @@ settings.configure(
     INSTALLED_APPS=[
         'modules.comun', 
         'modules.inventario', 
-        'modules.ventas'
+        'modules.ventas',
+        # 'modules.api',
         ],
     LANGUAGE_CODE = "es",
     USE_I18N = True,

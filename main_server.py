@@ -1,17 +1,36 @@
 import flet as ft
+# Import para el ORM de Django
 import django
 import apps.servidor.settings
+django.setup()
+# import para estilos y configuraciones
 from apps.servidor.styles import STYLES
 from utilities.style_manager import StyleManager  # Cargar configuración del ORM
-django.setup()
 
 from apps.servidor.menudata import MenuData
 from modules.inventario.routes import routes as inventario_routes
 from modules.ventas.routes import routes as ventas_routes
 from modules.comun.routes import routes as comun_routes
+from modules.sever.routes import routes as server_routes
 
+# Import para el servidor FastAPI
+from apps.servidor.fast_api import start_fastapi, fastapi_app
+import threading
+
+
+# from modules.api.routes import routes as api_routes
 
 from router.control import ControlView
+
+from fastapi import FastAPI
+from data.serializers import ProductoSerializer
+import os
+import configparser
+
+# Read the port from server_settings.cfg
+config = configparser.ConfigParser()
+config.read('apps/servidor/server_settings.cfg')
+FASTAPI_PORT = int(config.get('SERVER', 'FASTAPI_PORT', fallback=8000))
         
 def custom_go(page: ft.Page, route: str, params: dict = None) -> None:
     """
@@ -52,6 +71,7 @@ def view_pop(page: ft.Page) -> None:
     page.views.pop()
     top_view = page.views[-1]
     page.go(top_view.route)
+    
      
 def main(page: ft.Page):
     """
@@ -75,7 +95,7 @@ def main(page: ft.Page):
     page.on_error = lambda e: print("Page error:", e.data)
     # Initialize the main control view
     menudata = MenuData()
-    modules = inventario_routes | ventas_routes | comun_routes
+    modules = inventario_routes | ventas_routes | comun_routes | server_routes
     control_view = ControlView(page=page, modules=modules, menudata=menudata)
 
     # AppBar configuration
@@ -101,6 +121,10 @@ def main(page: ft.Page):
 
     # Add the main control view to the page
     page.add(control_view)
+
+
+    # Iniciar FastAPI en un hilo separado
+    threading.Thread(target=start_fastapi, args=(fastapi_app, FASTAPI_PORT), daemon=True).start()
 
 
 ft.app(main, #view=ft.AppView.WEB_BROWSER
