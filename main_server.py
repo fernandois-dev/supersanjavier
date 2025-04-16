@@ -22,9 +22,9 @@ import threading
 
 from router.control import ControlView
 
-from fastapi import FastAPI
-from data.serializers import ProductoSerializer
-import os
+# from fastapi import FastAPI
+# from data.serializers import ProductoSerializer
+# import os
 import configparser
 
 # Read the port from server_settings.cfg

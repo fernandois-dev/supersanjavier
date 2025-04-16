@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from modules.inventario.models import Producto
-from data.serializers import ProductoSerializer
+from modules.inventario.serializers import ProductoSerializer
 from uvicorn import Config, Server
 
 # Crear la instancia de FastAPI

@@ -23,6 +23,19 @@
             }
         },
         {
+            "name": "Flet Debug Servidor uv",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_server.py",
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/.venv/Scripts/python",
+            "justMyCode": true,
+            "args": [],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Flet Debug Cliente",
             "type": "debugpy",
             "request": "launch",
