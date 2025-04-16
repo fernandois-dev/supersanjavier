@@ -1,0 +1,48 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flet Run Servidor",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_server.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": []
+        },
+        {
+            "name": "Flet Debug Servidor",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_server.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Flet Debug Cliente",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main_client.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Synchronization",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/synchronization.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": []
+        },
+        
+    ]
+}

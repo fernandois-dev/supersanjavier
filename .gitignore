@@ -70,7 +70,7 @@ data/database.db
 venv/
 
 # VS Code settings
-.vscode/
+# .vscode/
 
 # OS generated files
 .DS_Store
