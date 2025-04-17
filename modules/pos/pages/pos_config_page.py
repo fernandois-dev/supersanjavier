@@ -6,7 +6,7 @@ import os
 
 
 class POSConfigPage(ft.Container):
-    def __init__(self, page=None, config_file="pos_settings.cfg"):
+    def __init__(self, page=None, config_file="apps/cliente/pos_settings.cfg"):
         super().__init__()
         self.page = page
         self.config_file = config_file

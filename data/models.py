@@ -1,3 +1,6 @@
+# import requests
+# import configparser
+# from django.db import transaction
 # from django.db import models
 # from django.core.validators import MinLengthValidator
 # from .custom_fields import CustomCharField, CustomEmailField, CustomDateTimeField, CustomAutoField, CustomIntegerField, CustomBooleanField, CustomForeignKey
@@ -137,3 +140,41 @@
 #     def delete(self):
 #         # Custom logic to manage relations before delete
 #         super().delete()
+
+# Function to synchronize products from the API
+# def sync_products():
+#     # Read server configuration from pos_settings.cfg
+#     config = configparser.ConfigParser()
+#     config.read('d:/code/flet/Sistema Ventas San Javier/servidor/apps/cliente/pos_settings.cfg')
+
+#     ip_servidor = config.get('POS', 'ip_servidor')
+#     port_servidor = config.get('POS', 'port_servidor')
+#     api_url = f"http://{ip_servidor}:{port_servidor}/api/productos"
+
+#     try:
+#         # Fetch product data from the API
+#         response = requests.get(api_url)
+#         response.raise_for_status()
+#         products = response.json()
+
+#         # Insert products into the database
+#         with transaction.atomic():
+#             # Delete all existing products before synchronization
+#             Producto.objects.all().delete()
+#             for product in products:
+#                 Producto.objects.update_or_create(
+#                     codigo=product['codigo'],
+#                     defaults={
+#                         'nombre': product['nombre'],
+#                         'descripcion': product.get('descripcion', ''),
+#                         'precio_compra': product['precio_compra'],
+#                         'precio_venta': product['precio_venta'],
+#                         'stock': product['stock'],
+#                         'activo': product.get('activo', True),
+#                     }
+#                 )
+#         print("Products synchronized successfully.")
+#     except requests.RequestException as e:
+#         print(f"Error fetching products from API: {e}")
+#     except Exception as e:
+#         print(f"Error inserting products into the database: {e}")

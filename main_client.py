@@ -1,8 +1,6 @@
 import flet as ft
 import django
-
-from menudata import MenuData
-import settings  # Cargar configuración del ORM
+import apps.cliente.settings# Cargar configuración del ORM
 django.setup()
 
 # filepath: d:\code\flet\Sistema Ventas San Javier\servidor\main.py
@@ -11,6 +9,7 @@ from apps.cliente.styles import STYLES
 
 from modules.pos.routes import routes as pos_routes
 from router.control import ControlView
+from modules.pos.uilities import get_api_productos_url, sync_products
         
 def custom_go(page: ft.Page, route: str, params: dict = None) -> None:
     """
@@ -79,6 +78,9 @@ def main(page: ft.Page):
     modules = pos_routes
     control_view = ControlView(page=page, modules=modules, menudata=None)
     
+    # se actualizan los productos desde el servidor
+    api_url = get_api_productos_url()
+    sync_products(api_url)
     
     # AppBar configuration
     page.appbar = ft.AppBar(
