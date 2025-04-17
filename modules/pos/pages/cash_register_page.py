@@ -7,6 +7,10 @@ from components.field_builder import FieldBuilder
 from components.not_data_table import NotDataTable
 from pages.conditions import Conditions
 from utilities.utilities import num_or_zero, to_number_or_zero
+from django.db import transaction
+from django.core.exceptions import ValidationError
+
+
 
 
 class CashRegisterPage(ft.Container):
@@ -167,6 +171,29 @@ class CashRegisterPage(ft.Container):
         """Lógica para generar el pago."""
         print(f"Generando pago por un total de ${self.total:.2f} con un descuento de ${self.descuento:.2f}")
         # Aquí puedes agregar la lógica para procesar el pago
+        if self.total > 0:
+            with transaction.atomic():
+            # Delete all existing products before synchronization
+                try:
+                    # se guarda el objeto principal
+                    self.new_obj.full_clean()
+                    self.new_obj.save()
+                    
+                    #se recorre la lista de detalles de venta y se guardan
+                    for detalle in self.detalles_venta:
+                        detalle.venta = self.new_obj
+                        detalle.full_clean()
+                        detalle.save()
+                
+                except ValidationError as ex:
+                    self.set_errors(ex)
+                
+            
+            # Limpiar los campos y la tabla después de procesar el pago
+            # self.clean_fields()
+            # self.table.set_data([])
+            # self.table.create_table()
+            # self.update_resume()
         
     def build_row_fields_large(self):
         self.mode = "large"

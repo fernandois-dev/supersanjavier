@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from modules.inventario.models import Categoria, Producto
 from modules.inventario.serializers import CategoriaSerializer, ProductoSerializer
+from modules.ventas.models import Caja
+from modules.ventas.serializers import CajaSerializer
 from uvicorn import Config, Server
 
 # Crear la instancia de FastAPI
@@ -25,6 +27,14 @@ def get_categorias():
     serializer = CategoriaSerializer(categorias, many=True)
     return serializer.data
 
+@fastapi_app.get("/api/cajas/")
+def get_cajas():
+    """
+    Endpoint para obtener la lista de cajas.
+    """
+    cajas = Caja.objects.all()
+    serializer = CajaSerializer(cajas, many=True)
+    return serializer.data
 
 def start_fastapi(app: FastAPI, port: int):
     """

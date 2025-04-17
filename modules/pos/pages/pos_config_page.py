@@ -2,6 +2,8 @@ import flet as ft
 import configparser
 import os
 
+from components.custom_buttons import CustomButtonCupertino
+
 # from components.custom_input import CustomToast
 
 
@@ -35,26 +37,39 @@ class POSConfigPage(ft.Container):
             value=self.config.get("POS", "ip_servidor"),
             width=300,
         )
-
-        # Botones
-        self.btn_guardar = ft.ElevatedButton(
-            text="Guardar Configuración",
-            icon=ft.icons.SAVE,
-            on_click=self.save_config,
+        self.port_servidor = ft.TextField(
+            label="PORT",
+            value=self.config.get("POS", "port_servidor"),
+            width=300,
         )
-        self.btn_cerrar = ft.ElevatedButton(
+        # Botones
+        self.btn_guardar = CustomButtonCupertino(
+            text="Guardar Configuración",
+            icon_name=ft.icons.SAVE,
+            on_click=self.save_config,
+            color=ft.Colors.ON_SECONDARY,
+            bgcolor=ft.Colors.SECONDARY,
+        )
+        self.btn_cerrar = CustomButtonCupertino(
             text="Cerrar",
-            icon=ft.icons.CLOSE,
+            icon_name=ft.icons.CLOSE,
             on_click=self.close_window,
+            color=ft.Colors.ON_SECONDARY,
+            bgcolor=ft.Colors.SECONDARY,
         )
 
         # Layout de la ventana
         self.content = ft.Column(
             controls=[
                 ft.Text("Configuración del Punto de Venta", size=20, weight=ft.FontWeight.BOLD),
-                self.txt_numero_caja,
-                self.txt_usuario_caja,
-                self.txt_ip_servidor,
+                ft.Column(
+                    controls=[
+                        self.txt_numero_caja,
+                        self.txt_usuario_caja,
+                        self.txt_ip_servidor,
+                        self.port_servidor,
+                    ]
+                ),
                 ft.Row(
                     controls=[self.btn_guardar, self.btn_cerrar],
                     alignment=ft.MainAxisAlignment.END,
@@ -62,7 +77,6 @@ class POSConfigPage(ft.Container):
             ],
             spacing=20,
             width=400,
-            height=300,
         )
 
     def handle_keypress(self, e: ft.KeyboardEvent):
@@ -85,6 +99,7 @@ class POSConfigPage(ft.Container):
             "numero_caja": "1",
             "usuario_caja": "admin",
             "ip_servidor": "127.0.0.1",
+            "port_servidor": "3555",
         }
         with open(self.config_file, "w") as configfile:
             self.config.write(configfile)
@@ -94,6 +109,7 @@ class POSConfigPage(ft.Container):
         self.config["POS"]["numero_caja"] = self.txt_numero_caja.value
         self.config["POS"]["usuario_caja"] = self.txt_usuario_caja.value
         self.config["POS"]["ip_servidor"] = self.txt_ip_servidor.value
+        self.config["POS"]["port_servidor"] = self.port_servidor.value
 
         with open(self.config_file, "w") as configfile:
             self.config.write(configfile)

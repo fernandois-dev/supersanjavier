@@ -1,15 +1,40 @@
+import configparser
+import os
 import flet as ft
 import django
 import apps.cliente.settings# Cargar configuración del ORM
 django.setup()
 
 # filepath: d:\code\flet\Sistema Ventas San Javier\servidor\main.py
+from modules.ventas.models import Caja
 from utilities.style_manager import StyleManager
 from apps.cliente.styles import STYLES
 
 from modules.pos.routes import routes as pos_routes
 from router.control import ControlView
-from modules.pos.uilities import get_api_categorias_url, get_api_productos_url, sync_categories, sync_products
+from modules.pos.uilities import get_api_cajas_url, get_api_categorias_url, get_api_productos_url, sync_cajas, sync_categories, sync_products
+      
+def load_cash_register_from_config():
+    """
+    Load the cash register configuration from the settings file.
+
+    Returns:
+        dict: A dictionary containing the cash register configuration.
+    """
+    config_path = os.path.join(
+        os.path.dirname(__file__), 
+        '../../apps/cliente/pos_settings.cfg'
+    )
+    config_path = os.path.abspath(config_path)
+    
+    config = configparser.ConfigParser()
+    config.read(config_path)
+
+    caja_config = {
+        'numero_caja': config.get('POS', 'numero_caja'),
+    }
+    
+    return caja_config
         
 def custom_go(page: ft.Page, route: str, params: dict = None) -> None:
     """
@@ -22,7 +47,6 @@ def custom_go(page: ft.Page, route: str, params: dict = None) -> None:
     """
     page.params = params or {}
     page.go(route)
-
 
 def route_change(page: ft.Page, control_view: ControlView, e: ft.ControlEvent) -> None:
     """
@@ -86,7 +110,13 @@ def main(page: ft.Page):
     api_productos_url = get_api_productos_url()
     sync_products(api_url=api_productos_url)
     
+    # se sincronizan las cajas desde el servidor
+    api_cajas_url = get_api_cajas_url()
+    sync_cajas(api_url=api_cajas_url)  # Synchronize cash registers from the server
     
+    # se establece el objeto caja leyendolo desde pos_settings.cfg y se deja como variable en page
+    numero_caja = load_cash_register_from_config()
+    page.caja = Caja.objects.filter(numero_caja=numero_caja['numero_caja']).first()
     
     # AppBar configuration
     page.appbar = ft.AppBar(
