@@ -116,7 +116,7 @@ def main(page: ft.Page):
     
     # se establece el objeto caja leyendolo desde pos_settings.cfg y se deja como variable en page
     numero_caja = load_cash_register_from_config()
-    page.caja = Caja.objects.filter(numero_caja=numero_caja['numero_caja']).first()
+    page.caja = Caja.objects.filter(numero=numero_caja['numero_caja']).first()
     
     # AppBar configuration
     page.appbar = ft.AppBar(

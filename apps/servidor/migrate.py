@@ -1,7 +1,7 @@
 
 import django
 from django.core.management import call_command
-import settings  # Importa la configuración
+from . import settings  # Importa la configuración
 from django.conf import settings
 import os
 

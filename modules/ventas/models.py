@@ -12,6 +12,7 @@ VENTA_STATE_CHOICES = [
 
 class Caja(models.Model):
     id = CustomAutoField(primary_key=True, verbose_name="ID", null=False, blank=False, editable=False)
+    numero = CustomIntegerField(verbose_name="Número", null=False, blank=False, unique=True, default=0)
     nombre = CustomCharField(max_length=100, verbose_name="Nombre", null=False, blank=False)
     activo = CustomBooleanField(verbose_name="Activo", null=True, blank=True, default=True)
     

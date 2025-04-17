@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from modules.inventario.models import Caja
+from modules.ventas.models import Caja
 
 class CajaSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,3 +1,3 @@
 import sys
-import data.migrate
+import apps.servidor.migrate
 sys.exit("Terminada ejecucion de la migracion")
