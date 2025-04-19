@@ -429,12 +429,12 @@ class CustomDropdown(ft.DropdownM2):
     def __init__(self, field, value=None, on_change=None, width=350, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = field.name
-        self.value = value
         self.updade_value = on_change
         self.on_change = self.handle_change
         self.width = width
         self.label_style = ft.TextStyle(weight=ft.FontWeight.NORMAL)
         self.options=[ft.dropdown.Option("", text=" ", data=None)] + [ ft.dropdown.Option(str(opt.id), text=str(opt), data=opt) for opt in field.related_model.objects.all()]
+        self.value = value.id if value else None
         self.label = field.verbose_name
         self.hover_color = "red"
         self.disabled = field.read_only

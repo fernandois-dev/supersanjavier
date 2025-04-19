@@ -1,6 +1,7 @@
 import copy
 import flet as ft
-from modules.ventas.models import DetalleVenta
+from components.custom_dialogs import DlgAlert
+from modules.ventas.models import DetalleVenta, Venta
 from components.custom_buttons import CustomButtonCupertino, CustomIconButton
 from components.custom_input import CustomIntegerField, CustomMoneyField, CustomMoneyView, DisplayMode, LayoutMode, ManagerField, SearchField
 from components.field_builder import FieldBuilder
@@ -170,30 +171,47 @@ class CashRegisterPage(ft.Container):
     def generate_payment(self, e):
         """Lógica para generar el pago."""
         print(f"Generando pago por un total de ${self.total:.2f} con un descuento de ${self.descuento:.2f}")
-        # Aquí puedes agregar la lógica para procesar el pago
+        
+        #si page.caja no existe no se ejecuta el pago
+        if not self.page.caja:
+            DlgAlert(self.page, title="Caja no establecida, favor configurar y reiniciar la aplicación")
+            return
+        
         if self.total > 0:
             with transaction.atomic():
             # Delete all existing products before synchronization
                 try:
-                    # se guarda el objeto principal
-                    self.new_obj.full_clean()
-                    self.new_obj.save()
+                    # se crea el objeto de venta
+                    venta = Venta()
+                    venta.caja = self.page.caja
+                    venta.total = self.total
+                    venta.state = "CR"
+                    venta.full_clean()
+                    venta.save()
                     
                     #se recorre la lista de detalles de venta y se guardan
                     for detalle in self.detalles_venta:
-                        detalle.venta = self.new_obj
+                        detalle.venta = venta
                         detalle.full_clean()
                         detalle.save()
+                        
+                    # se imprime la boleta
+                    self.print_boleta()
+                    
+                    # se limpia la tabla y los campos
+                    self.clean_fields()
+                    
+                    self.table.set_data([])
+                    self.update_resume()
+                    
                 
                 except ValidationError as ex:
-                    self.set_errors(ex)
-                
-            
-            # Limpiar los campos y la tabla después de procesar el pago
-            # self.clean_fields()
-            # self.table.set_data([])
-            # self.table.create_table()
-            # self.update_resume()
+                    DlgAlert(self.page, title="Error", content=str(ex))
+                       
+    def print_boleta(self):
+        """Lógica para imprimir la boleta en pdf"""
+        DlgAlert(self.page, title="Imprimiendo boleta")
+        pass
         
     def build_row_fields_large(self):
         self.mode = "large"
@@ -282,8 +300,8 @@ class CashRegisterPage(ft.Container):
                 self.build_row_fields_large()
             # elif e.key == "F12":
             #     self.generate_payment(e)
-            # elif e.key == "F7":
-            #     self.clean_fields()
+            elif e.key == "F7":
+                self.clean_fields()
             elif e.key == "F8":
                 # go to config page
                 self.page.on_keyboard_event = None
@@ -423,6 +441,11 @@ class CashRegisterPage(ft.Container):
             self.clean_fields_large()
         else:
             self.clean_fields_short()
+            
+        # Limpiar la tabla y el resumen
+        self.detalles_venta = []
+        self.update_table()
+        self.update_resume()
             
     def clean_fields_short(self):
         self.field_producto_short.value = ""

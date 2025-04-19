@@ -47,7 +47,7 @@ class Venta(models.Model):
     id = CustomAutoField(primary_key=True, verbose_name="ID", null=False, blank=False, editable=False)
     fecha = CustomDateTimeField(verbose_name="Fecha", null=False, blank=False, default=datetime.now)
     caja = CustomForeignKey(Caja, verbose_name="Caja", on_delete=models.PROTECT, null=False, blank=False)
-    usuario = CustomForeignKey(Usuario, verbose_name="Usuario", on_delete=models.SET_NULL, null=True, blank=False)
+    usuario = CustomForeignKey(Usuario, verbose_name="Usuario", on_delete=models.SET_NULL, null=True, blank=True)
     total = CustomMoneyField(verbose_name="Total", null=False, blank=False, read_only=True)
     state = CustomCharField(max_length=3, verbose_name="Estado", default="BR" ,null=True, blank=True, choices=VENTA_STATE_CHOICES)
 

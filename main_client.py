@@ -23,7 +23,7 @@ def load_cash_register_from_config():
     """
     config_path = os.path.join(
         os.path.dirname(__file__), 
-        '../../apps/cliente/pos_settings.cfg'
+        'apps/cliente/pos_settings.cfg'
     )
     config_path = os.path.abspath(config_path)
     
