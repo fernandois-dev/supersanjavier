@@ -10,9 +10,21 @@ from modules.ventas.models import Caja
 from utilities.style_manager import StyleManager
 from apps.cliente.styles import STYLES
 
+# Import para el servidor FastAPI
+from apps.cliente.fast_api import start_fastapi, fastapi_app
+import threading
+
 from modules.pos.routes import routes as pos_routes
 from router.control import ControlView
 from modules.pos.uilities import get_api_cajas_url, get_api_categorias_url, get_api_productos_url, sync_cajas, sync_categories, sync_products
+
+import configparser
+
+# Read the port from server_settings.cfg
+config = configparser.ConfigParser()
+config.read('apps/cliente/pos_settings.cfg')
+FASTAPI_PORT = int(config.get('POS-API', 'api_port', fallback=8000))
+
       
 def load_cash_register_from_config():
     """
@@ -97,6 +109,9 @@ def main(page: ft.Page):
     }
     page.theme_mode = ft.ThemeMode.LIGHT
     page.on_error = lambda e: print("Page error:", e.data)
+    
+    
+    
     # Initialize the main control view
     # menudata = MenuData()
     modules = pos_routes
@@ -141,6 +156,10 @@ def main(page: ft.Page):
 
     # Add the main control view to the page
     page.add(control_view)
+    
+    # Iniciar FastAPI en un hilo separado
+    threading.Thread(target=start_fastapi, args=(fastapi_app, FASTAPI_PORT), daemon=True).start()
+
 
 
 ft.app(main, #view=ft.AppView.WEB_BROWSER

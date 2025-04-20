@@ -16,8 +16,8 @@ def get_api_productos_url():
     config = configparser.ConfigParser()
     config.read(config_path)
 
-    ip_servidor = config.get('POS', 'ip_servidor')
-    port_servidor = config.get('POS', 'port_servidor')
+    ip_servidor = config.get('POS-SERVIDOR', 'ip_servidor')
+    port_servidor = config.get('POS-SERVIDOR', 'port_servidor')
     return f"http://{ip_servidor}:{port_servidor}/api/productos"
 
 def get_api_categorias_url():
@@ -30,8 +30,8 @@ def get_api_categorias_url():
     config = configparser.ConfigParser()
     config.read(config_path)
 
-    ip_servidor = config.get('POS', 'ip_servidor')
-    port_servidor = config.get('POS', 'port_servidor')
+    ip_servidor = config.get('POS-SERVIDOR', 'ip_servidor')
+    port_servidor = config.get('POS-SERVIDOR', 'port_servidor')
     return f"http://{ip_servidor}:{port_servidor}/api/categorias"
 
 def get_api_cajas_url():
@@ -44,8 +44,8 @@ def get_api_cajas_url():
     config = configparser.ConfigParser()
     config.read(config_path)
 
-    ip_servidor = config.get('POS', 'ip_servidor')
-    port_servidor = config.get('POS', 'port_servidor')
+    ip_servidor = config.get('POS-SERVIDOR', 'ip_servidor')
+    port_servidor = config.get('POS-SERVIDOR', 'port_servidor')
     return f"http://{ip_servidor}:{port_servidor}/api/cajas"
 
 def sync_products(api_url):
