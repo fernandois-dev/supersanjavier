@@ -77,5 +77,12 @@ class MenuData:
                 selected_icon=ft.icons.SETTINGS,
                 
             ),
+            ControlGroup(
+                name="sync",
+                label="Sincronización",
+                icon=ft.icons.SYNC_OUTLINED,
+                selected_icon=ft.icons.SYNC,
+                
+            ),
         ]
 

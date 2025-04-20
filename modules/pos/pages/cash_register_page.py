@@ -45,14 +45,14 @@ class CashRegisterPage(ft.Container):
         
         self.btn_pagar = CustomButtonCupertino(
             text="F12 Pagar",
-            icon_name=ft.icons.PAYMENT,
+            icon=ft.icons.PAYMENT,
             on_click=self.generate_payment,
             bgcolor=ft.Colors.PRIMARY_CONTAINER,
             color=ft.Colors.ON_PRIMARY_CONTAINER,
         )
         self.btn_reset = CustomButtonCupertino(
             text="F7 Limpiar",
-            icon_name=ft.icons.CANCEL,
+            icon=ft.icons.CANCEL,
             on_click=lambda e: self.clean_fields(),
             bgcolor=ft.Colors.TERTIARY_CONTAINER,
             color=ft.Colors.ON_PRIMARY_CONTAINER,
