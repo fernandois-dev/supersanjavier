@@ -129,8 +129,9 @@ def sync_cajas(api_url):
                 Caja.objects.update_or_create(
                     id=caja['id'],
                     defaults={
-                        'nombre': caja['nombre'],
-                        'descripcion': caja.get('descripcion', ''),
+                        'numero': caja['numero'],
+                        'nombre': caja.get('nombre', ''),
+                        'activo': caja.get('activo', True),
                     }
                 )
             # elimina las categorias que no esten en la api

@@ -34,12 +34,12 @@ class POSConfigPage(ft.Container):
         )
         self.txt_ip_servidor = ft.TextField(
             label="IP del Servidor",
-            value=self.config.get("POS", "ip_servidor"),
+            value=self.config.get("POS-SERVIDOR", "ip_servidor"),
             width=300,
         )
         self.port_servidor = ft.TextField(
             label="PORT",
-            value=self.config.get("POS", "port_servidor"),
+            value=self.config.get("POS-SERVIDOR", "port_servidor"),
             width=300,
         )
         # Botones
@@ -108,8 +108,8 @@ class POSConfigPage(ft.Container):
         """Guarda la configuración en el archivo."""
         self.config["POS"]["numero_caja"] = self.txt_numero_caja.value
         self.config["POS"]["usuario_caja"] = self.txt_usuario_caja.value
-        self.config["POS"]["ip_servidor"] = self.txt_ip_servidor.value
-        self.config["POS"]["port_servidor"] = self.port_servidor.value
+        self.config["POS-SERVIDOR"]["ip_servidor"] = self.txt_ip_servidor.value
+        self.config["POS-SERVIDOR"]["port_servidor"] = self.port_servidor.value
 
         with open(self.config_file, "w") as configfile:
             self.config.write(configfile)
