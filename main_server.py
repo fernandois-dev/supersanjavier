@@ -11,7 +11,7 @@ from apps.servidor.menudata import MenuData
 from modules.inventario.routes import routes as inventario_routes
 from modules.ventas.routes import routes as ventas_routes
 from modules.comun.routes import routes as comun_routes
-from modules.sever.routes import routes as server_routes
+from modules.servidor.routes import routes as server_routes
 
 # Import para el servidor FastAPI
 from apps.servidor.fast_api import start_fastapi, fastapi_app

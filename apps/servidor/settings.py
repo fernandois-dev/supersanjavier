@@ -21,6 +21,7 @@ settings.configure(
         'modules.comun', 
         'modules.inventario', 
         'modules.ventas',
+        'modules.servidor',
         # 'modules.api',
         ],
     LANGUAGE_CODE = "es",

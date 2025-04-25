@@ -66,13 +66,13 @@ class NotDataTableHeader(ft.Container):
         
         if self.is_editable: list_header_row.append(ft.Container(width=40))
         
-        fields_order = self.conditions.fields_order or [field.name for field in self._model._meta.fields]
+        fields_order = self.conditions.fields_order if self.conditions else [field.name for field in self._model._meta.fields]
     
         for field_name in fields_order:
             col = next((field for field in self._model._meta.fields if field.name == field_name), None)
             if not col:
                 continue
-            if col.hidden or col.name in self.conditions.fields_excluded: 
+            if col.hidden or col.name in self.conditions.fields_excluded if self.conditions else []: 
                 continue
             
             
@@ -107,7 +107,7 @@ class NotDataTableHeader(ft.Container):
             container = ft.Container(text_header, 
                 on_hover=(lambda e: on_hover(e)) if sort else None,
                 on_click=(lambda e: on_click(e)) if sort else None,
-                expand=self.conditions.fields_expand.get(col.name, 1),
+                expand=self.conditions.fields_expand.get(col.name, 1) if self.conditions else 1,
                 data=col.name,
                 padding=ft.padding.symmetric(horizontal=5),
                 alignment=ft.alignment.center_left,

@@ -173,7 +173,7 @@ class GenericPage(ft.Column):
         
         if count == 1:
             obj = list_objs[0]
-            row_acciones.controls.append(CustomButtonCupertino(text="Editar", icon_name=ft.Icons.EDIT, on_click= lambda e: self.display_form(obj)))
+            row_acciones.controls.append(CustomButtonCupertino(text="Editar", icon=ft.Icons.EDIT, on_click= lambda e: self.display_form(obj)))
          
         
         #################################################

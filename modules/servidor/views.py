@@ -1,8 +1,8 @@
 
 import flet as ft
 
-from modules.sever.pages.server_config_page import ServerConfigPage
-from modules.sever.pages.sincronization_page import SincronizationPage
+from modules.servidor.pages.server_config_page import ServerConfigPage
+from modules.servidor.pages.sincronization_page import SincronizationPage
 
 
 

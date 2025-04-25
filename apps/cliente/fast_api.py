@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from modules.inventario.models import Categoria, Producto
 from modules.inventario.serializers import CategoriaSerializer, ProductoSerializer
 from modules.ventas.models import Venta
-from modules.ventas.serializers import VentaSerializer
+from modules.ventas.serializers import UltimaVentaSerializer, VentaSerializer
 from uvicorn import Config, Server
 
 # Crear la instancia de FastAPI
@@ -19,6 +19,15 @@ def get_ventas(fecha_desde: str = None):
     if fecha_desde:
         ventas = ventas.filter(fecha__gte=fecha_desde)
     serializer = VentaSerializer(instance=ventas, many=True)
+    return serializer.data
+
+@fastapi_app.get("/api/fecha-ultima-venta/")
+def get_fecha_ultima_venta():
+    """
+    Endpoint para obtener la fecha de la última venta.
+    """
+    ultima_venta = Venta.objects.latest('fecha')
+    serializer = UltimaVentaSerializer(instance=ultima_venta)
     return serializer.data
 
 

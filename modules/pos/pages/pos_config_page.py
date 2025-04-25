@@ -45,14 +45,14 @@ class POSConfigPage(ft.Container):
         # Botones
         self.btn_guardar = CustomButtonCupertino(
             text="Guardar Configuración",
-            icon_name=ft.icons.SAVE,
+            icon=ft.icons.SAVE,
             on_click=self.save_config,
             color=ft.Colors.ON_SECONDARY,
             bgcolor=ft.Colors.SECONDARY,
         )
         self.btn_cerrar = CustomButtonCupertino(
             text="Cerrar",
-            icon_name=ft.icons.CLOSE,
+            icon=ft.icons.CLOSE,
             on_click=self.close_window,
             color=ft.Colors.ON_SECONDARY,
             bgcolor=ft.Colors.SECONDARY,

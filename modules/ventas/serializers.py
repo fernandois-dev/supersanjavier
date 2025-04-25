@@ -19,3 +19,11 @@ class VentaSerializer(serializers.ModelSerializer):
         model = Venta
         fields = ['id', 'caja', 'fecha', 'total', 'state', 'usuario', 'detalle_venta']
         
+# clase que obtiene la ultima venta
+class UltimaVentaSerializer(serializers.ModelSerializer):
+    caja = CajaSerializer(read_only=True)
+    
+    class Meta:
+        model = Venta
+        fields = ['fecha', 'caja']
+        
