@@ -26,4 +26,5 @@ class UltimaVentaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venta
         fields = ['fecha', 'caja']
-        
+
+

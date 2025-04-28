@@ -570,6 +570,7 @@ class NotDataTable(ft.Column):
         """
         for row in self.component_body.controls:
             row.chk_column.value = value
+            row.set_is_selected(value)
             
         self.header.chk_column.value = value
     

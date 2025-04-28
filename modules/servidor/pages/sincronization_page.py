@@ -8,7 +8,9 @@ from components.custom_buttons import CustomButtonCupertino
 from components.not_data_table import NotDataTable
 from modules.servidor.models import VistaSincronizacion
 from modules.ventas.models import Caja, Venta
-from django.db import transaction
+import modules.ventas.service as ventas_service
+from urllib.parse import quote
+
 
 
 
@@ -168,7 +170,7 @@ class SincronizationPage(ft.Container):
                     #obtiene ultima venta de esa caja registrada en la base de datos local
                     ultima_sincronizacion = self.get_ultima_venta(caja_id=caja.get("id"))
                     if ultima_sincronizacion:
-                        ultima_sincronizacion =datetime.fromisoformat(ultima_sincronizacion)
+                        ultima_sincronizacion =datetime.fromisoformat(ultima_sincronizacion.fecha)
                     
                     nuevo_registro = VistaSincronizacion(
                         ip=ip,
@@ -190,21 +192,18 @@ class SincronizationPage(ft.Container):
         # TODO Implementar la lógica de sincronización aquí
         
         #recorre los registros seleccionados y sincroniza la informacion
-        for registro in self.table.get_selected_rows():
-            param = ""
-            if registro.ultima_sincronizacion:
-                param = "?fecha_desde=" + str(registro.ultima_sincronizacion)
+        for registro in self.table.get_selectd_objects():
+            param = "?fecha_desde=" + quote(str(registro.ultima_sincronizacion)) if registro.ultima_sincronizacion else ""
             
             ip = registro.ip
             url = f"http://{ip}:{self.port}/api/ventas{param}"
             try:
-                response = requests.post(url, timeout=1)
+                response = requests.get(url)
                 if response.status_code == 200:
                     
                     # inicia transaccion en la base de datos del orm
-                    with transaction.atomic():
-                        for venta in response.json():
-                            self.guarda_venta(venta)
+                    ventas = response.json()
+                    ventas_service.save_venta(ventas)  # Corrected to pass the variable 'ventas' instead of calling response.json() again
                             
             except requests.RequestException:
                 pass
