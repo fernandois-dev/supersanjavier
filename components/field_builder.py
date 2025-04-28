@@ -32,12 +32,12 @@ class FieldFactory(ft.Container):
         self.content = []
         list_fields = []
         
-        fields_order = self.conditions.fields_order or [field.name for field in self.obj._meta.fields]
+        fields_order = self.conditions.fields_order if (self.conditions and self.conditions.fields_order) else [field.name for field in self.obj._meta.fields]
         
         for field_name in fields_order:
             field = next((field for field in self.obj._meta.fields if field.name == field_name), None)
             if not field: continue
-            if field.name in self.conditions.fields_excluded: continue
+            if self.conditions and self.conditions.fields_excluded and field.name in self.conditions.fields_excluded: continue
             
             value = getattr(self.obj, field.name, None)
             # instancia el manejo de los campos

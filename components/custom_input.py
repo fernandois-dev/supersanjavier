@@ -973,8 +973,8 @@ class ManagerField(ft.Container):
     def build_field(self, **kwargs):
         self.value = kwargs.get("value", None)
         self.name = kwargs.get("name", "")
-        self.override_input_type = self.conditions.overrides_input_type.get(self.name, None)
-        self.override_view_type = self.conditions.overrides_view_type.get(self.name, None)
+        self.override_input_type = self.conditions.overrides_input_type.get(self.name, None) if self.conditions else None
+        self.override_view_type = self.conditions.overrides_view_type.get(self.name, None) if self.conditions else None
         
         if self.display_mode == DisplayMode.EDIT:
             self.custom_edit = get_input_by_type(self.input_type, **kwargs) if not self.override_input_type else self.override_input_type(**kwargs)

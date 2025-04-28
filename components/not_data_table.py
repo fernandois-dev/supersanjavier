@@ -561,6 +561,17 @@ class NotDataTable(ft.Column):
     def get_selectd_objects(self):
         return [row.obj for row in self.component_body.controls if row.check_is_selected()]
     
+    def set_all_rows_selected(self, value: bool) -> None:
+        """
+        Sets the selection state of all rows in the table.
+
+        Args:
+            value (bool): True to select all rows, False to deselect all.
+        """
+        for row in self.component_body.controls:
+            row.chk_column.value = value
+            
+        self.header.chk_column.value = value
     
     def handle_chk_row_selected(self, e):
         list_rows_selected = self.list_rows_selected()
