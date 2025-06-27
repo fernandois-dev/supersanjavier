@@ -66,7 +66,7 @@ class NotDataTableHeader(ft.Container):
         
         if self.is_editable: list_header_row.append(ft.Container(width=40))
         
-        fields_order = self.conditions.fields_order if self.conditions else [field.name for field in self._model._meta.fields]
+        fields_order = self.conditions.fields_order if (self.conditions and self.conditions.fields_order) else [field.name for field in self._model._meta.fields]
     
         for field_name in fields_order:
             col = next((field for field in self._model._meta.fields if field.name == field_name), None)

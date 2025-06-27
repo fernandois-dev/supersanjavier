@@ -33,8 +33,9 @@ class DlgConfirm(ft.AlertDialog):
         self.page.close(self)
         
 class DlgAlert(ft.AlertDialog):
-    def __init__(self, page: ft.Page,title: str = "") -> None:
+    def __init__(self, page: ft.Page,title: str = "", content = None) -> None:
         super().__init__()
         self.page = page
         self.title=ft.Text(title)
+        self.content = content
         self.page.open(self)

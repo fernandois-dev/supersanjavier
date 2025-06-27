@@ -1,10 +1,12 @@
 from datetime import datetime
+import os
 import flet as ft
 import socket
 import requests
 from concurrent.futures import ThreadPoolExecutor
 
 from components.custom_buttons import CustomButtonCupertino
+from components.custom_dialogs import DlgAlert
 from components.not_data_table import NotDataTable
 from modules.servidor.models import VistaSincronizacion
 from modules.ventas.models import Caja, Venta
@@ -15,10 +17,12 @@ from urllib.parse import quote
 
 
 class SincronizationPage(ft.Container):
-    def __init__(self, page=None, config_file="apps/servidor/server_settings.cfg"):
+    def __init__(self, page=None, config_file=None):
         super().__init__()
         self.page = page
-        self.config_file = config_file
+        self.config_path = os.path.abspath(os.path.join(os.getcwd(), "apps/servidor/server_settings.cfg")) if config_file is None else config_file
+        if not os.path.exists(self.config_path):
+            raise FileNotFoundError(f"El archivo de configuración no se encontró en: {self.config_path}")
         
         self.btn_buscar = CustomButtonCupertino(
             text="Buscar",
@@ -84,7 +88,7 @@ class SincronizationPage(ft.Container):
         """
         import configparser
         config = configparser.ConfigParser()
-        config.read(self.config_file)
+        config.read(self.config_path)
         return int(config.get('SERVER', 'puerto_api', fallback=3555))
         
     def get_ultima_venta(self, caja_id):
@@ -99,10 +103,9 @@ class SincronizationPage(ft.Container):
         
         if ultima_venta:
             # Aquí puedes formatear la fecha o realizar cualquier otra operación necesaria
-            ultima_venta.fecha = ultima_venta.fecha.strftime("%Y-%m-%d %H:%M:%S")
+            return ultima_venta.fecha
         else:
-            ultima_venta = None
-        return ultima_venta
+            return None  # O devolver un valor por defecto si no hay ventas registradas
     
     def handle_on_click_buscar(self, e):
         # se landa el loading mientras se busca 
@@ -110,14 +113,14 @@ class SincronizationPage(ft.Container):
         self.page.update()
         self.btn_buscar.disabled = True
         self.btn_buscar.update()
-        self.buscar(e)
+        self.buscar()
         # se quita el loading y se habilita el boton de buscar
         self.btn_buscar.disabled = False
         self.btn_buscar.update()
         self.loading.visible = False
         self.page.update()
 
-    def buscar(self, e):
+    def buscar(self):
         """
         Escanea la red local en busca de puntos de venta y los lista en la tabla.
         """
@@ -169,8 +172,6 @@ class SincronizationPage(ft.Container):
                     
                     #obtiene ultima venta de esa caja registrada en la base de datos local
                     ultima_sincronizacion = self.get_ultima_venta(caja_id=caja.get("id"))
-                    if ultima_sincronizacion:
-                        ultima_sincronizacion =datetime.fromisoformat(ultima_sincronizacion.fecha)
                     
                     nuevo_registro = VistaSincronizacion(
                         ip=ip,
@@ -192,7 +193,17 @@ class SincronizationPage(ft.Container):
         # TODO Implementar la lógica de sincronización aquí
         
         #recorre los registros seleccionados y sincroniza la informacion
+        errors = []
+        cant_procesados = 0
+        registros = self.table.get_selectd_objects()
+        
+        if not registros: return
+        
         for registro in self.table.get_selectd_objects():
+            if registro.ultima_venta <= registro.ultima_sincronizacion:
+                continue
+            
+            
             param = "?fecha_desde=" + quote(str(registro.ultima_sincronizacion)) if registro.ultima_sincronizacion else ""
             
             ip = registro.ip
@@ -204,19 +215,24 @@ class SincronizationPage(ft.Container):
                     # inicia transaccion en la base de datos del orm
                     ventas = response.json()
                     ventas_service.save_venta(ventas)  # Corrected to pass the variable 'ventas' instead of calling response.json() again
-                            
-            except requests.RequestException:
-                pass
-     
-    def guarda_venta(self, venta):
-        """
-        Guarda la venta en la base de datos local.
-        """
-        # Aquí deberías implementar la lógica para guardar la venta en la base de datos local
-        # Por ejemplo, podrías usar un ORM o una consulta SQL directa
-        # Esto es solo un ejemplo y no funcionará sin una implementación real
-        pass
-    
+                    cant_procesados += 1
+                         
+            except requests.RequestException as e:
+                # Manejo de errores
+                errors.append(ft.Text(f"Error al sincronizar con {ip}: {str(e)}", color=ft.colors.RED))
+                
+        if errors:
+            DlgAlert(page=self.page, title="Errores de Sincronización", content=ft.Column(controls=errors))
+            
+        else:
+            if cant_procesados > 0:
+                self.page.open(ft.SnackBar(ft.Text(f"Sincronización completada con éxito"), bgcolor=ft.colors.PRIMARY, action_color=ft.colors.ON_SURFACE))
+            else:
+                self.page.open(ft.SnackBar(ft.Text(f"No se encontraron ventas nuevas para sincronizar"), bgcolor=ft.colors.PRIMARY, action_color=ft.colors.ON_SURFACE))
+        self.table.set_data([])  # Actualiza la tabla con los datos obtenidos
+        self.table.create_table()
+        self.update()
+        
     def _create_table(self) -> NotDataTable:
         """
         Crea y configura la tabla principal.

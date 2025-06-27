@@ -6,15 +6,17 @@ import os
 
 
 class ServerConfigPage(ft.Container):
-    def __init__(self, page=None, config_file="apps/servidor/server_settings.cfg"):
+    def __init__(self, page=None, config_file=None):
         super().__init__()
         self.page = page
-        self.config_file = config_file
+        self.config_path = os.path.abspath(os.path.join(os.getcwd(), "apps/servidor/server_settings.cfg")) if config_file is None else config_file
+        if not os.path.exists(self.config_path):
+            raise FileNotFoundError(f"El archivo de configuración no se encontró en: {self.config_path}")
         self.config = configparser.ConfigParser()
         self.page.on_keyboard_event = self.handle_keypress
 
         # Cargar configuración existente o crear una nueva
-        if os.path.exists(self.config_file):
+        if os.path.exists(self.config_path):
             self.load_config()
         else:
             self.create_default_config()
@@ -65,21 +67,21 @@ class ServerConfigPage(ft.Container):
             
     def load_config(self):
         """Carga la configuración desde el archivo."""
-        self.config.read(self.config_file)
+        self.config.read(self.config_path)
 
     def create_default_config(self):
         """Crea una configuración por defecto si no existe el archivo."""
         self.config["SERVER"] = {
             "FASTAPI_PORT": "3500",
         }
-        with open(self.config_file, "w") as configfile:
+        with open(self.config_path, "w") as configfile:
             self.config.write(configfile)
 
     def save_config(self, e):
         """Guarda la configuración en el archivo."""
         self.config["SERVER"]["FASTAPI_PORT"] = self.txt_numero_puerto.value
 
-        with open(self.config_file, "w") as configfile:
+        with open(self.config_path, "w") as configfile:
             self.config.write(configfile)
 
         # ft.Toast("Configuración guardada correctamente.").show()

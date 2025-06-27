@@ -22,7 +22,8 @@ def caja_form(page: ft.Page, params: dict):
 
 def venta_list(page: ft.Page, params: dict):
     conditions = Conditions(
-        fields_excluded=["state"],
+        fields_excluded=["state", "id"],
+        fields_order=["fecha", "caja", "total"],
     )
     view = GenericPage(page=page, _model=Venta, params=params, conditions=conditions)
     view.build_page()
@@ -34,7 +35,7 @@ def venta_form(page: ft.Page, params: dict):
         #         "usuario": SearchField
         #     },
         fields_excluded=["state"],
-        related_objects={"detalleventa_set": {
+        related_objects={"detalle_venta": {
             'fields_excluded': ["id","venta"],
             'fields_order':["cantidad", "producto", "precio","descuento", "total"],
             'fields_calculations':{

@@ -57,7 +57,7 @@ class Venta(models.Model):
     class Meta:
         verbose_name = "Venta"
         verbose_name_plural = "Ventas"
-        ordering = ["-id"]
+        ordering = ["-fecha"]
         
     def delete(self):
         # Custom logic to manage relations before delete

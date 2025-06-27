@@ -6,13 +6,7 @@ from django.db import transaction
 from modules.inventario.models import Categoria, Producto
 from modules.ventas.models import Caja
 
-def get_api_productos_url():
-    # Read server configuration from pos_settings.cfg
-    config_path = os.path.join(
-        os.path.dirname(__file__), 
-        '../../apps/cliente/pos_settings.cfg'
-    )
-    config_path = os.path.abspath(config_path)
+def get_api_productos_url(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
 
@@ -20,13 +14,7 @@ def get_api_productos_url():
     port_servidor = config.get('POS-SERVIDOR', 'port_servidor')
     return f"http://{ip_servidor}:{port_servidor}/api/productos"
 
-def get_api_categorias_url():
-    # Read server configuration from pos_settings.cfg
-    config_path = os.path.join(
-        os.path.dirname(__file__), 
-        '../../apps/cliente/pos_settings.cfg'
-    )
-    config_path = os.path.abspath(config_path)
+def get_api_categorias_url(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
 
@@ -34,13 +22,7 @@ def get_api_categorias_url():
     port_servidor = config.get('POS-SERVIDOR', 'port_servidor')
     return f"http://{ip_servidor}:{port_servidor}/api/categorias"
 
-def get_api_cajas_url():
-    # Read server configuration from pos_settings.cfg
-    config_path = os.path.join(
-        os.path.dirname(__file__), 
-        '../../apps/cliente/pos_settings.cfg'
-    )
-    config_path = os.path.abspath(config_path)
+def get_api_cajas_url(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
 
@@ -78,13 +60,13 @@ def sync_products(api_url):
             # elimina los productos que no esten en la api
             ids = [product['id'] for product in products]
             Producto.objects.exclude(id__in=ids).delete()
-            
-        print("Products synchronized successfully.")
+
+        return (1, "Products synchronized successfully.")
     except requests.RequestException as e:
-        print(f"Error fetching products from API: {e}")
+        return (2, f"Error fetching products from API: {e}")
     except Exception as e:
-        print(f"Error inserting products into the database: {e}")
-        
+        return (2, f"Error inserting products into the database: {e}")
+
 def sync_categories(api_url):
     try:
         # Fetch category data from the API
@@ -108,11 +90,11 @@ def sync_categories(api_url):
             ids = [category['id'] for category in categories]
             Categoria.objects.exclude(id__in=ids).delete()
             
-        print("Categories synchronized successfully.")
+        return (1, "Categories synchronized successfully.")
     except requests.RequestException as e:
-        print(f"Error fetching categories from API: {e}")
+        return (2, f"Error fetching categories from API: {e}")
     except Exception as e:
-        print(f"Error inserting categories into the database: {e}")
+        return (2, f"Error inserting categories into the database: {e}")
     
 def sync_cajas(api_url):
     try:
@@ -137,10 +119,9 @@ def sync_cajas(api_url):
             # elimina las categorias que no esten en la api
             ids = [caja['id'] for caja in cajas]
             Caja.objects.exclude(id__in=ids).delete()
-            
-        print("Cajas synchronized successfully.")
+
+        return (1, "Cajas synchronized successfully.")
     except requests.RequestException as e:
-        print(f"Error fetching cajas from API: {e}")
+        return (2, f"Error fetching cajas from API: {e}")
     except Exception as e:
-        print(f"Error inserting cajas into the database: {e}")
-        
+        return (2, f"Error inserting cajas into the database: {e}")

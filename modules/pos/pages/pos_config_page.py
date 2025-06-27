@@ -3,20 +3,30 @@ import configparser
 import os
 
 from components.custom_buttons import CustomButtonCupertino
+from modules.pos.uilities import get_api_cajas_url, get_api_categorias_url, get_api_productos_url, sync_cajas, sync_categories, sync_products
+
 
 # from components.custom_input import CustomToast
 
 
 class POSConfigPage(ft.Container):
-    def __init__(self, page=None, config_file="apps/cliente/pos_settings.cfg"):
+    def __init__(self, page=None, config_file=None):
         super().__init__()
         self.page = page
-        self.config_file = config_file
+        self.config_path = os.path.abspath(os.path.join(os.getcwd(), "apps/cliente/pos_settings.cfg")) if config_file is None else config_file
         self.config = configparser.ConfigParser()
         self.page.on_keyboard_event = self.handle_keypress
 
+        self.btn_sync = CustomButtonCupertino(
+            text="Sincronizar",
+            icon=ft.icons.SYNC,
+            on_click=lambda e: self.sync(),
+            color=ft.Colors.ON_PRIMARY,
+            bgcolor=ft.Colors.PRIMARY,
+        )
+
         # Cargar configuración existente o crear una nueva
-        if os.path.exists(self.config_file):
+        if os.path.exists(self.config_path):
             self.load_config()
         else:
             self.create_default_config()
@@ -42,20 +52,18 @@ class POSConfigPage(ft.Container):
             value=self.config.get("POS-SERVIDOR", "port_servidor"),
             width=300,
         )
+        self.chk_carga_productos = ft.Checkbox(
+            label="Cargar Productos al iniciar",
+            value=self.config.getboolean("POS", "carga_productos"),
+        )
+        
         # Botones
         self.btn_guardar = CustomButtonCupertino(
             text="Guardar Configuración",
             icon=ft.icons.SAVE,
             on_click=self.save_config,
-            color=ft.Colors.ON_SECONDARY,
-            bgcolor=ft.Colors.SECONDARY,
-        )
-        self.btn_cerrar = CustomButtonCupertino(
-            text="Cerrar",
-            icon=ft.icons.CLOSE,
-            on_click=self.close_window,
-            color=ft.Colors.ON_SECONDARY,
-            bgcolor=ft.Colors.SECONDARY,
+            color=ft.Colors.ON_PRIMARY,
+            bgcolor=ft.Colors.PRIMARY,
         )
 
         # Layout de la ventana
@@ -68,11 +76,12 @@ class POSConfigPage(ft.Container):
                         self.txt_usuario_caja,
                         self.txt_ip_servidor,
                         self.port_servidor,
+                        self.chk_carga_productos
                     ]
                 ),
                 ft.Row(
-                    controls=[self.btn_guardar, self.btn_cerrar],
-                    alignment=ft.MainAxisAlignment.END,
+                    controls=[self.btn_guardar, self.btn_sync],
+                    alignment=ft.MainAxisAlignment.START,
                 ),
             ],
             spacing=20,
@@ -88,20 +97,54 @@ class POSConfigPage(ft.Container):
             # go to config page
             self.page.go("/")
         
-            
+    def sync(self):
+        # se sincronizan las categorias desde el servidor
+        api_categorias_url = get_api_categorias_url(self.config_path)
+        response = sync_categories(api_url=api_categorias_url)  # Synchronize categories from the server
+
+        if response[0] == 1:
+            self.page.open(ft.SnackBar(ft.Text(response[1])))
+        else:
+            self.page.open(ft.SnackBar(ft.Text(response[1]), bgcolor=ft.Colors.RED_800))
+
+        # se actualizan los productos desde el servidor
+        api_productos_url = get_api_productos_url(self.config_path)
+        response = sync_products(api_url=api_productos_url)
+
+        if response[0] == 1:
+            self.page.open(ft.SnackBar(ft.Text(response[1])))
+        else:
+            self.page.open(ft.SnackBar(ft.Text(response[1]), bgcolor=ft.Colors.RED_800))
+
+        # se sincronizan las cajas desde el servidor
+        api_cajas_url = get_api_cajas_url(self.config_path)
+        response = sync_cajas(api_url=api_cajas_url)
+
+        if response[0] == 1:
+            self.page.open(ft.SnackBar(ft.Text(response[1])))
+        else:
+            self.page.open(ft.SnackBar(ft.Text(response[1]), bgcolor=ft.Colors.RED_800))
+
     def load_config(self):
         """Carga la configuración desde el archivo."""
-        self.config.read(self.config_file)
+        self.config.read(self.config_path)
 
     def create_default_config(self):
         """Crea una configuración por defecto si no existe el archivo."""
         self.config["POS"] = {
-            "numero_caja": "1",
+            "numero_caja": "2",
             "usuario_caja": "admin",
-            "ip_servidor": "127.0.0.1",
+            "carga_productos": "true",
+        }
+        self.config["POS-SERVIDOR"] = {
+            "ip_servidor": "192.168.1.4",
             "port_servidor": "3555",
         }
-        with open(self.config_file, "w") as configfile:
+        self.config["POS-API"] = {
+            "api_port": "3555",
+        }
+
+        with open(self.config_path, "w") as configfile:
             self.config.write(configfile)
 
     def save_config(self, e):
@@ -110,8 +153,9 @@ class POSConfigPage(ft.Container):
         self.config["POS"]["usuario_caja"] = self.txt_usuario_caja.value
         self.config["POS-SERVIDOR"]["ip_servidor"] = self.txt_ip_servidor.value
         self.config["POS-SERVIDOR"]["port_servidor"] = self.port_servidor.value
+        self.config["POS"]["carga_productos"] = str(self.chk_carga_productos.value)
 
-        with open(self.config_file, "w") as configfile:
+        with open(self.config_path, "w") as configfile:
             self.config.write(configfile)
 
         # ft.Toast("Configuración guardada correctamente.").show()

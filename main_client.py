@@ -21,9 +21,14 @@ from modules.pos.uilities import get_api_cajas_url, get_api_categorias_url, get_
 import configparser
 
 # Read the port from server_settings.cfg
+config_path = os.path.abspath(os.path.join(os.getcwd(), "apps/cliente/pos_settings.cfg"))
+if not os.path.exists(config_path):
+    raise FileNotFoundError(f"El archivo de configuración no se encontró en: {config_path}")
+
 config = configparser.ConfigParser()
-config.read('apps/cliente/pos_settings.cfg')
+config.read(config_path)
 FASTAPI_PORT = int(config.get('POS-API', 'api_port', fallback=8000))
+CARGA_PRODUCTOS = config.getboolean('POS', 'carga_productos', fallback=True)    
 
       
 def load_cash_register_from_config():
@@ -33,15 +38,6 @@ def load_cash_register_from_config():
     Returns:
         dict: A dictionary containing the cash register configuration.
     """
-    config_path = os.path.join(
-        os.path.dirname(__file__), 
-        'apps/cliente/pos_settings.cfg'
-    )
-    config_path = os.path.abspath(config_path)
-    
-    config = configparser.ConfigParser()
-    config.read(config_path)
-
     caja_config = {
         'numero_caja': config.get('POS', 'numero_caja'),
     }
@@ -116,18 +112,19 @@ def main(page: ft.Page):
     # menudata = MenuData()
     modules = pos_routes
     control_view = ControlView(page=page, modules=modules, menudata=None)
-    
-    # se sincronizan las categorias desde el servidor
-    api_categorias_url = get_api_categorias_url()
-    sync_categories(api_url=api_categorias_url)  # Synchronize categories from the server
-    
-    # se actualizan los productos desde el servidor
-    api_productos_url = get_api_productos_url()
-    sync_products(api_url=api_productos_url)
-    
-    # se sincronizan las cajas desde el servidor
-    api_cajas_url = get_api_cajas_url()
-    sync_cajas(api_url=api_cajas_url)  # Synchronize cash registers from the server
+
+    if CARGA_PRODUCTOS:
+        # se sincronizan las categorias desde el servidor
+        api_categorias_url = get_api_categorias_url(config_path)
+        sync_categories(api_url=api_categorias_url)  # Synchronize categories from the server
+        
+        # se actualizan los productos desde el servidor
+        api_productos_url = get_api_productos_url(config_path)
+        sync_products(api_url=api_productos_url)
+        
+        # se sincronizan las cajas desde el servidor
+        api_cajas_url = get_api_cajas_url(config_path)
+        sync_cajas(api_url=api_cajas_url)  # Synchronize cash registers from the server
     
     # se establece el objeto caja leyendolo desde pos_settings.cfg y se deja como variable en page
     numero_caja = load_cash_register_from_config()
@@ -137,7 +134,7 @@ def main(page: ft.Page):
     page.appbar = ft.AppBar(
         leading=ft.Container(padding=5, content=ft.Image(src=f"logo.svg")),
         leading_width=40,
-        title=ft.Text("Inventario"),
+        title=ft.Text("Punto de Venta"),
         center_title=True,
         bgcolor=ft.Colors.INVERSE_PRIMARY,
         actions=[

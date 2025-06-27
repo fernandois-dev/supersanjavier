@@ -1,3 +1,4 @@
+import os
 import flet as ft
 # Import para el ORM de Django
 import django
@@ -28,8 +29,13 @@ from router.control import ControlView
 import configparser
 
 # Read the port from server_settings.cfg
+
+config_path = os.path.abspath(os.path.join(os.getcwd(), "apps/servidor/server_settings.cfg"))
+if not os.path.exists(config_path):
+    raise FileNotFoundError(f"El archivo de configuración no se encontró en: {config_path}")
+
 config = configparser.ConfigParser()
-config.read('apps/servidor/server_settings.cfg')
+config.read(config_path)
 FASTAPI_PORT = int(config.get('SERVER', 'FASTAPI_PORT', fallback=8000))
         
 def custom_go(page: ft.Page, route: str, params: dict = None) -> None:
